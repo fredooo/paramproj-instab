@@ -9,7 +9,7 @@
 ## Key Features
 
 * Compares parametric projection methods (neural networks) against non-parametric baselines (UMAP, t-SNE) for dimensionality reduction.
-* Measures projection stability under Gaussian input perturbations using novel metrics (D_dev, D_bias, Q, C_Q).
+* Measures projection stability under Gaussian input perturbations using novel metrics ($D_{\text{dev}}$, $D_{\text{bias}}$, $Q$, $C_Q$).
 * Evaluates projection quality via trustworthiness and continuity metrics.
 * Includes MLP and spectrally-normalized MLP (SpecMLP) architectures with optional Jacobian regularization.
 * Provides multiple visualization types: scatter plots, KDE contours, local PCA ellipses, anchor lines, and Voronoi tessellations.
