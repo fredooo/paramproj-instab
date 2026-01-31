@@ -16,7 +16,7 @@
 
 ## Requirements
 
-* **Python** >= 3.10 ([Python 3.10.x](https://www.python.org/downloads/release/python-3100/))
+* **Python** >= 3.11 ([Python 3.11.x](https://www.python.org/downloads/release/python-3110/))
 * **Virtual environment**: [venv](https://docs.python.org/3/library/venv.html)
 
 ## How to Run
@@ -62,7 +62,7 @@ python3 test.py
 | `main.py`           | Main experiment pipeline: datasets, projections, models, metrics.           |
 | `config.py`         | Configuration dataclasses for datasets, projections, models, experiments.   |
 | `models.py`         | MLP and SpecMLP neural network architectures.                               |
-| `measures.py`       | Stability metrics (D_dev, D_bias, Q, C_Q) and quality metrics (trust/cont). |
+| `measures.py`       | Stability metrics ($D_{\text{dev}}$, $D_{\text{bias}}$, $Q$, $C_Q$) and quality metrics (trust/cont). |
 | `train.py`          | Training loop for projection-mimicking neural networks.                     |
 | `utils.py`          | Utility functions (seeding, centroid selection, plotting).                  |
 | `test.py`           | Smoke test for verifying installation.                                      |
@@ -73,10 +73,10 @@ python3 test.py
 ## Metrics
 
 ### Stability Metrics
-- **D_dev**: Mean displacement from anchor (noise-induced drift)
-- **D_bias**: Systematic bias (distance between mean noisy projection and anchor)
-- **Q**: Variance normalized by noise level (amplification measure)
-- **C_Q**: Coefficient of variation of Q across noise levels
+- $D_{\text{dev}}$: Mean displacement from anchor (noise-induced drift)
+- $D_{\text{bias}}$: Systematic bias (distance between mean noisy projection and anchor)
+- $Q$: Variance normalized by noise level (amplification measure)
+- $C_Q$: Coefficient of variation of Q across noise levels
 
 ### Quality Metrics
 - **Trustworthiness**: Measures false neighbors in low-dimensional space
