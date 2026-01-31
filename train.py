@@ -1,19 +1,11 @@
 # train.py
 import time
-from collections import namedtuple
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
-
-TrainingConfig = namedtuple('TrainingConfig', [
-    'max_epochs', 'batch_size', 'lr', 'patience'
-])
-
-TrainingResult = namedtuple('TrainingResult', [
-    'model', 'best_val_loss', 'final_train_loss', 'epochs', 'early_stopped', 'training_time'
-])
+from typedefs import TrainData, TrainingConfig, TrainingResult
 
 
 def create_loader(X, Z, batch_size, shuffle=True):
@@ -69,7 +61,7 @@ def validate_epoch(model, loader, loss_fn, device):
     return total_loss / n_samples
 
 
-def train_projection_model(model, X_train, Z_train, X_val, Z_val, device, cfg: TrainingConfig,
+def train_projection_model(model, train_data: TrainData, device, cfg: TrainingConfig,
                            use_jacobian=False, lambda_jac=0.0):
     """Train model with early stopping. Returns TrainingResult namedtuple."""
     start_time = time.time()
@@ -78,8 +70,8 @@ def train_projection_model(model, X_train, Z_train, X_val, Z_val, device, cfg: T
     optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
     loss_fn = nn.MSELoss()
 
-    train_loader = create_loader(X_train, Z_train, cfg.batch_size, shuffle=True)
-    val_loader = create_loader(X_val, Z_val, cfg.batch_size, shuffle=False)
+    train_loader = create_loader(train_data.X_tr, train_data.Z_tr, cfg.batch_size, shuffle=True)
+    val_loader = create_loader(train_data.X_val, train_data.Z_val, cfg.batch_size, shuffle=False)
 
     best_val, best_state, patience_ctr = float("inf"), None, 0
     train_loss = 0.0

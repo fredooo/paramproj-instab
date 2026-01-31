@@ -5,13 +5,13 @@ import numpy as np
 import torch
 from scipy.spatial.distance import pdist, squareform
 
-from config import DataSplit, ProjectionContext, ExperimentConfig, DatasetConfig, ProjectionConfig, ModelConfig
+from typedefs import DataSplit, ProjectionContext, ExperimentConfig, DatasetConfig, ProjectionConfig, ModelConfig, TrainData, OutputDirs, RunContext, TrainingConfig
 from dataset_loaders import load_blobs_split, load_fmnist_split, load_har_split, load_mnist_split
 from measures import compute_stability_metrics, create_noisy_versions, metric_trustworthiness_numba, metric_continuity_numba
 from models import predict, create_model, get_model_prefix
 from plotting.plot_all import plot_all
 from projection_utils import tsne_setup, umap_setup
-from train import train_projection_model, evaluate_projection_model, TrainingConfig
+from train import train_projection_model, evaluate_projection_model
 from utils import set_seed, centroid_representative_indices, plot_projection_data
 
 SEED = 777
@@ -20,6 +20,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 RESULTS_DIR = "./output/results"
 MODELS_DIR = "./output/models"
 IMAGES_DIR = "./output/images"
+OUTPUT_DIRS = OutputDirs(MODELS_DIR, IMAGES_DIR, RESULTS_DIR)
 
 TRAINING_CONFIG = TrainingConfig(
     max_epochs=10,
@@ -108,30 +109,27 @@ def compute_nn_metrics(model, proj_ctx, experiment_cfg, dataset_cfg, device):
     return metrics, Z_clusters, Z_base
 
 
-def evaluate_projection(dataset_cfg, projection_cfg, seed, data, D_high_te, experiment_cfg,
-                        models_dir, images_dir):
+def evaluate_projection(run_ctx, data, D_high_te, experiment_cfg, output_dirs):
     """Evaluate a projection method (with supports_transform=True) as a first-class model.
 
     Parameters
     ----------
-    dataset_cfg : DatasetConfig
-    projection_cfg : ProjectionConfig
-    seed : int
+    run_ctx : RunContext
     data : DataSplit
     D_high_te : ndarray
         Precomputed high-dimensional distance matrix.
     experiment_cfg : ExperimentConfig
-    models_dir : str
-        Directory for cached models.
-    images_dir : str
-        Directory for output images.
+    output_dirs : OutputDirs
 
     Returns
     -------
     tuple (row, ProjectionContext)
         row is None if projection doesn't support transform.
     """
-    path_prefix = os.path.join(models_dir, f"{projection_cfg.name}_{dataset_cfg.name}_{seed}")
+    dataset_cfg = run_ctx.dataset_cfg
+    projection_cfg = run_ctx.projection_cfg
+    seed = run_ctx.seed
+    path_prefix = os.path.join(output_dirs.models, f"{projection_cfg.name}_{dataset_cfg.name}_{seed}")
 
     # Setup projection
     reducer, Z_tr, Z_val, Z_te, supports_transform = projection_cfg.setup(
@@ -140,7 +138,7 @@ def evaluate_projection(dataset_cfg, projection_cfg, seed, data, D_high_te, expe
 
     # Plot train/val/test projections
     for Z, y, subset in [(Z_tr, data.y_tr, "train"), (Z_val, data.y_val, "val"), (Z_te, data.y_te, "test")]:
-        filename = os.path.join(images_dir, f"{projection_cfg.name}_{dataset_cfg.name}_{seed}_{subset}")
+        filename = os.path.join(output_dirs.images, f"{projection_cfg.name}_{dataset_cfg.name}_{seed}_{subset}")
         plot_projection_data(Z, y, filename)
 
     # Compute projection quality metrics (trustworthiness & continuity on clean test data)
@@ -170,7 +168,7 @@ def evaluate_projection(dataset_cfg, projection_cfg, seed, data, D_high_te, expe
         )
 
         # Generate plots
-        img_prefix = os.path.join(images_dir, f"proj_{projection_cfg.name}_{dataset_cfg.name}_{seed}")
+        img_prefix = os.path.join(output_dirs.images, f"proj_{projection_cfg.name}_{dataset_cfg.name}_{seed}")
         plot_all(Z_clusters, Z_base, img_prefix)
 
         # Build result row
@@ -187,19 +185,17 @@ def evaluate_projection(dataset_cfg, projection_cfg, seed, data, D_high_te, expe
     return row, proj_ctx
 
 
-def load_or_train_model(model_cfg, dataset_cfg, projection_cfg, seed,
-                        X_tr, Z_tr, X_val, Z_val,
-                        training_cfg, device, models_dir):
+def load_or_train_model(model_cfg, run_ctx, train_data, training_cfg, device, models_dir):
     """Load cached model or train and save."""
     prefix = get_model_prefix(model_cfg)
     base_path = os.path.join(
         models_dir,
-        f"{prefix}_{projection_cfg.name}_{dataset_cfg.name}_{seed}"
+        f"{prefix}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}"
     )
     model_path = f"{base_path}.pt"
     metrics_path = f"{base_path}.csv"
 
-    model = create_model(model_cfg, dataset_cfg.input_dim)
+    model = create_model(model_cfg, run_ctx.dataset_cfg.input_dim)
 
     if os.path.exists(model_path):
         print(f"        Loading cached model: {model_path}")
@@ -207,7 +203,7 @@ def load_or_train_model(model_cfg, dataset_cfg, projection_cfg, seed,
         model = model.to(device)
     else:
         result = train_projection_model(
-            model, X_tr, Z_tr, X_val, Z_val, device, training_cfg,
+            model, train_data, device, training_cfg,
             use_jacobian=model_cfg.use_jac, lambda_jac=model_cfg.lambda_jac
         )
         model = result.model
@@ -233,14 +229,12 @@ def load_or_train_model(model_cfg, dataset_cfg, projection_cfg, seed,
     return model
 
 
-def evaluate_nn_model(dataset_cfg, projection_cfg, model_cfg, seed,
-                      data, proj_ctx, D_high_te, experiment_cfg,
-                      training_cfg, device, images_dir, models_dir):
+def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te, experiment_cfg,
+                      training_cfg, device, output_dirs):
     """Evaluate an NN model for one (dataset, projection, model, seed) configuration."""
+    train_data = TrainData(data.X_tr, proj_ctx.Z_tr, data.X_val, proj_ctx.Z_val)
     model = load_or_train_model(
-        model_cfg, dataset_cfg, projection_cfg, seed,
-        data.X_tr, proj_ctx.Z_tr, data.X_val, proj_ctx.Z_val,
-        training_cfg, device, models_dir
+        model_cfg, run_ctx, train_data, training_cfg, device, output_dirs.models
     )
     test_loss = evaluate_projection_model(model, data.X_te, proj_ctx.Z_te, device=device)
 
@@ -250,18 +244,18 @@ def evaluate_nn_model(dataset_cfg, projection_cfg, model_cfg, seed,
 
     # Compute NN-side stability metrics
     nn_stability, Z_clusters_nn, Z_base_nn = compute_nn_metrics(
-        model, proj_ctx, experiment_cfg, dataset_cfg, device
+        model, proj_ctx, experiment_cfg, run_ctx.dataset_cfg, device
     )
 
     # Generate plots for NN model
-    img_prefix = os.path.join(images_dir, f"{get_model_prefix(model_cfg)}_{projection_cfg.name}_{dataset_cfg.name}_{seed}")
+    img_prefix = os.path.join(output_dirs.images, f"{get_model_prefix(model_cfg)}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}")
     plot_all(Z_clusters_nn, Z_base_nn, img_prefix)
 
     # Build result row
     row = {
-        "dataset": dataset_cfg.name,
-        "projection": projection_cfg.name,
-        "run": seed,
+        "dataset": run_ctx.dataset_cfg.name,
+        "projection": run_ctx.projection_cfg.name,
+        "run": run_ctx.seed,
         "test_loss": test_loss,
         "trust": nn_quality["trust"],
         "cont": nn_quality["cont"],
@@ -297,10 +291,10 @@ def write_results_csv(rows_by_prefix, results_dir):
 
 
 def run_experiment(datasets, projections, models, seeds, training_cfg, experiment_cfg,
-                   models_dir=MODELS_DIR, images_dir=IMAGES_DIR, device=DEVICE):
+                   output_dirs=OUTPUT_DIRS, device=DEVICE):
     """Run experiment with given configuration. Returns rows_by_prefix dict."""
-    os.makedirs(models_dir, exist_ok=True)
-    os.makedirs(images_dir, exist_ok=True)
+    os.makedirs(output_dirs.models, exist_ok=True)
+    os.makedirs(output_dirs.images, exist_ok=True)
 
     # Initialize result storage for both NN models and projections
     rows_by_prefix = {get_model_prefix(m): [] for m in models}
@@ -321,12 +315,11 @@ def run_experiment(datasets, projections, models, seeds, training_cfg, experimen
 
             for projection_cfg in projections:
                 print(f"    Evaluating projection: {projection_cfg.name}")
+                run_ctx = RunContext(dataset_cfg, projection_cfg, seed)
 
                 # Evaluate projection (returns None for row if not supports_transform)
                 proj_row, proj_ctx = evaluate_projection(
-                    dataset_cfg, projection_cfg, seed,
-                    data, D_high_te, experiment_cfg,
-                    models_dir, images_dir
+                    run_ctx, data, D_high_te, experiment_cfg, output_dirs
                 )
 
                 # Store projection results if available
@@ -338,9 +331,8 @@ def run_experiment(datasets, projections, models, seeds, training_cfg, experimen
                 for model_cfg in models:
                     print(f"      Evaluating model: {get_model_prefix(model_cfg)}")
                     nn_row = evaluate_nn_model(
-                        dataset_cfg, projection_cfg, model_cfg, seed,
-                        data, proj_ctx, D_high_te, experiment_cfg,
-                        training_cfg, device, images_dir, models_dir
+                        run_ctx, model_cfg, data, proj_ctx, D_high_te, experiment_cfg,
+                        training_cfg, device, output_dirs
                     )
                     nn_row["run_id"] = run_id
                     rows_by_prefix[get_model_prefix(model_cfg)].append(nn_row)

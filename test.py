@@ -4,8 +4,8 @@ from main import (
     run_experiment, write_results_csv,
     DatasetConfig, ProjectionConfig, ModelConfig, ExperimentConfig,
 )
+from typedefs import OutputDirs, TrainingConfig
 from projection_utils import umap_setup
-from train import TrainingConfig
 
 # Minimal configuration
 TEST_DATASETS = [
@@ -44,8 +44,7 @@ def main():
         seeds=[777],  # Single seed
         training_cfg=TEST_TRAINING_CONFIG,
         experiment_cfg=TEST_EXPERIMENT_CONFIG,
-        models_dir="./test_output/models",
-        images_dir="./test_output/images",
+        output_dirs=OutputDirs("./test_output/models", "./test_output/images", "./test_output/results"),
     )
     write_results_csv(rows, "./test_output/results")
     print("Smoke test complete!")

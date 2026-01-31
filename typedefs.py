@@ -25,3 +25,18 @@ ExperimentConfig = namedtuple('ExperimentConfig', [
 DatasetConfig = namedtuple('DatasetConfig', ['name', 'load_fn', 'input_dim', 'clip_bounds'])
 ProjectionConfig = namedtuple('ProjectionConfig', ['name', 'setup'])
 ModelConfig = namedtuple('ModelConfig', ['use_spec', 'hidden_dim', 'n_hidden', 'use_jac', 'lambda_jac'])
+
+# Bundled train/val data for model training
+TrainData = namedtuple('TrainData', ['X_tr', 'Z_tr', 'X_val', 'Z_val'])
+
+# Output directory paths
+OutputDirs = namedtuple('OutputDirs', ['models', 'images', 'results'])
+
+# Context for a single experiment run (dataset + projection + seed)
+RunContext = namedtuple('RunContext', ['dataset_cfg', 'projection_cfg', 'seed'])
+
+# Training configuration
+TrainingConfig = namedtuple('TrainingConfig', ['max_epochs', 'batch_size', 'lr', 'patience'])
+
+# Training result
+TrainingResult = namedtuple('TrainingResult', ['model', 'best_val_loss', 'final_train_loss', 'epochs', 'early_stopped', 'training_time'])
