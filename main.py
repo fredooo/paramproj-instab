@@ -206,12 +206,18 @@ def load_or_train_model(model_cfg, run_ctx, train_data, training_cfg, device, mo
         print(f"        Loading cached model: {model_path}")
         model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
         model = model.to(device)
+        # Read training_time from metrics CSV
+        with open(metrics_path, "r") as f:
+            reader = csv.DictReader(f)
+            row = next(reader)
+            training_time = float(row["training_time"])
     else:
         result = train_projection_model(
             model, train_data, device, training_cfg,
             use_jacobian=model_cfg.use_jac, lambda_jac=model_cfg.lambda_jac
         )
         model = result.model
+        training_time = result.training_time
         torch.save(model.state_dict(), model_path)
 
         with open(metrics_path, "w", newline="") as f:
@@ -231,14 +237,14 @@ def load_or_train_model(model_cfg, run_ctx, train_data, training_cfg, device, mo
               f"(epochs={result.epochs}, val_loss={result.best_val_loss:.6f}, "
               f"time={result.training_time:.1f}s)")
 
-    return model
+    return model, training_time
 
 
 def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te, experiment_cfg,
                       training_cfg, device, output_dirs):
     """Evaluate an NN model for one (dataset, projection, model, seed) configuration."""
     train_data = TrainData(data.X_tr, proj_ctx.Z_tr, data.X_val, proj_ctx.Z_val)
-    model = load_or_train_model(
+    model, fit_time = load_or_train_model(
         model_cfg, run_ctx, train_data, training_cfg, device, output_dirs.models
     )
     test_loss = evaluate_projection_model(model, data.X_te, proj_ctx.Z_te, device=device)
@@ -262,7 +268,7 @@ def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te, experiment_
         "test_loss": test_loss,
         "trust": nn_quality["trust"],
         "cont": nn_quality["cont"],
-        "fit_time": None,
+        "fit_time": fit_time,
         "inference_time": inference_time,
         **nn_stability,
     }

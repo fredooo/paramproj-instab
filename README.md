@@ -9,7 +9,7 @@
 ## Key Features
 
 * Compares parametric projection methods (neural networks) against non-parametric baselines (UMAP, t-SNE) for dimensionality reduction.
-* Measures projection stability under Gaussian input perturbations using novel metrics ($D_{\text{dev}}$, $D_{\text{bias}}$, $Q$, $C_Q$).
+* Measures projection stability under Gaussian input perturbations using novel metrics ($D_{\text{dev}}$, $D_{\text{bias}}$, $E_{\text{NA}}$).
 * Evaluates projection quality via trustworthiness and continuity metrics.
 * Includes MLP and spectrally-normalized MLP (SpecMLP) architectures with optional Jacobian regularization.
 * Provides multiple visualization types: scatter plots, KDE contours, local PCA ellipses, anchor lines, and Voronoi tessellations.
@@ -60,9 +60,9 @@ python3 test.py
 | File Name           | Description                                                                 |
 | ------------------- | --------------------------------------------------------------------------- |
 | `main.py`           | Main experiment pipeline: datasets, projections, models, metrics.           |
-| `config.py`         | Configuration dataclasses for datasets, projections, models, experiments.   |
+| `typedefs.py`       | Configuration namedtuples for datasets, projections, models, experiments.   |
 | `models.py`         | MLP and SpecMLP neural network architectures.                               |
-| `measures.py`       | Stability metrics ($D_{\text{dev}}$, $D_{\text{bias}}$, $Q$, $C_Q$) and quality metrics (trust/cont). |
+| `measures.py`       | Stability metrics ($D_{\text{dev}}$, $D_{\text{bias}}$, $E_{\text{NA}}$) and quality metrics. |
 | `train.py`          | Training loop for projection-mimicking neural networks.                     |
 | `utils.py`          | Utility functions (seeding, centroid selection, plotting).                  |
 | `test.py`           | Smoke test for verifying installation.                                      |
@@ -73,14 +73,21 @@ python3 test.py
 ## Metrics
 
 ### Stability Metrics
-- $D_{\text{dev}}$: Mean displacement from anchor (noise-induced drift)
-- $D_{\text{bias}}$: Systematic bias (distance between mean noisy projection and anchor)
-- $Q$: Variance normalized by noise level (amplification measure)
-- $C_Q$: Coefficient of variation of Q across noise levels
+
+Given anchor point $\mathbf{z}_0$ and $N$ noisy projections $\{\mathbf{z}_i\}_{i=1}^N$:
+
+- **$D_{\text{dev}}$** — Mean displacement (noise-induced drift):
+  $$D_{\text{dev}} = \frac{1}{N} \sum_{i=1}^{N} \|\mathbf{z}_i - \mathbf{z}_0\|$$
+
+- **$D_{\text{bias}}$** — Systematic bias:
+  $$D_{\text{bias}} = \|\bar{\mathbf{z}} - \mathbf{z}_0\|, \quad \bar{\mathbf{z}} = \frac{1}{N}\sum_{i=1}^{N} \mathbf{z}_i$$
+
+- **$E_{\text{NA}}$** — Nearest-Anchor misassignment error: fraction of noisy projections assigned to wrong anchor via nearest-neighbor.
 
 ### Quality Metrics
-- **Trustworthiness**: Measures false neighbors in low-dimensional space
-- **Continuity**: Measures missing neighbors in low-dimensional space
+
+- **Trustworthiness**: Penalizes false neighbors (points close in low-dim but distant in high-dim)
+- **Continuity**: Penalizes missing neighbors (points close in high-dim but distant in low-dim)
 
 ## License
 
