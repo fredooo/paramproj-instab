@@ -30,6 +30,7 @@ def load_or_fit_umap(
         reducer = joblib.load(umap_path)
         Z_train = reducer.embedding_
     else:
+        # TODO Print time taken to fit UMAP
         reducer = umap.UMAP(random_state=seed)
         Z_train = reducer.fit_transform(X_train)
         joblib.dump(reducer, umap_path)

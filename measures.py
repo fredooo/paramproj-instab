@@ -59,7 +59,6 @@ def V_sigma(Z):
     z_bar = Z.mean(axis=0)
     return np.mean(np.sum((Z - z_bar[None, :]) ** 2, axis=1))
 
-
 def Q_sigma(Z, sigma):
     """Noise amplification measure Q(sigma).
 
@@ -150,6 +149,36 @@ def compute_stability_metrics(Z_base, Z_clusters, X_base, project_fn, experiment
         "C_Q": C_Q_val,
     }
 
+# TODO 1: 
+# Impelment the E_NA (Nearest-Anchor Assignment Error)
+# For each class anchor $z_0^{(c)}$ and its corresponding noise-perturbed projections
+# $\{z_i^{(c)}\}_{i=1}^N$, we assign each projected point to its nearest anchor in
+# the projected space:
+# \begin{equation}
+# a(z) = \arg\min_{k} \, \| z - z_0^{(k)} \|_2 .
+# \end{equation}
+# We then define the misassignment rate at noise level $\sigma$ as
+# \begin{equation}
+# E_{\text{NA}}(\sigma)
+# =
+# \frac{1}{C}
+# \sum_{c=1}^{C}
+# \frac{1}{N}
+# \sum_{i=1}^{N}
+# \mathbf{1}\!\left[ a\!\left(z_i^{(c)}\right) \neq c \right],
+# \end{equation}
+# where $C$ denotes the number of anchors and $\mathbf{1}[\cdot]$ is the indicator
+# function.
+# This measure quantifies the probability that noise-induced perturbations cause a
+# sample to leave the Voronoi region of its original anchor, providing a direct and
+# interpretable notion of projection robustness under sensor noise.
+
+# TODO 2: Include this only in a plan once TODO 1 is done and E_NA is implemente.
+# Then replace the computation of Q anc C_Q in the
+# codebase, specifically in compute_stability_metrics, with E_NA. This will
+# involve effect the dict that is returned by compute_stability_metrics.
+# Thus, ceck the calls to compute_stability_metrics in main.py and ensure
+# that the returned metrics dict is handled correctly. 
 
 # =============================================================================
 # Projection Quality Metrics (trustworthiness & continuity)

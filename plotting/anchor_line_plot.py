@@ -3,6 +3,10 @@ import numpy as np
 
 from plotting.base_2d_plot import Base2DPlot
 
+# TODO: Draw a thin, low-opacity circle centered at the anchor with
+# radius = mean displacement. The mean displacement is defined as the average
+# Euclidean distance from the anchor to each perturbed points. Color is a low-
+# opacity version of the anchor/cluster color.
 
 class AnchorLinePlot(Base2DPlot):
     """Lines from perturbed points to their corresponding anchor."""
@@ -17,7 +21,7 @@ class AnchorLinePlot(Base2DPlot):
         show_points=False,
         point_size=8,
         point_alpha=1.0,
-        max_lines=50,
+        max_lines=100,
         line_lw=0.8,
         figsize=(6, 6),
         dpi=150,

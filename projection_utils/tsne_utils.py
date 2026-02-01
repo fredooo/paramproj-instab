@@ -36,6 +36,7 @@ def load_or_fit_tsne(
         reducer = data["reducer"]
         Z_train = data["Z_train"]
     else:
+        # TODO Print time taken to fit t-SNE
         reducer = TSNE(random_state=seed)
         Z_train = reducer.fit_transform(X_train)
         joblib.dump({"reducer": reducer, "Z_train": Z_train}, tsne_path)
