@@ -1,12 +1,8 @@
 """Anchor line plot showing displacement from anchor to perturbed points."""
+import matplotlib.pyplot as plt
 import numpy as np
 
 from plotting.base_2d_plot import Base2DPlot
-
-# TODO: Draw a thin, low-opacity circle centered at the anchor with
-# radius = mean displacement. The mean displacement is defined as the average
-# Euclidean distance from the anchor to each perturbed points. Color is a low-
-# opacity version of the anchor/cluster color.
 
 class AnchorLinePlot(Base2DPlot):
     """Lines from perturbed points to their corresponding anchor."""
@@ -77,7 +73,26 @@ class AnchorLinePlot(Base2DPlot):
                     zorder=2,
                 )
 
+    def plot_mean_displacement_circles(self):
+        """Draw circle at anchor with radius = mean displacement."""
+        for i, (Z, anchor) in enumerate(zip(self.Z_clusters, self.anchors)):
+            Z = np.asarray(Z)
+            if len(Z) == 0:
+                continue
+            dists = np.linalg.norm(Z - anchor, axis=1)
+            mean_disp = np.mean(dists)
+            circle = plt.Circle(
+                anchor, mean_disp,
+                fill=False,
+                color=self.colors[i],
+                alpha=0.3,
+                linewidth=1.0,
+                zorder=3,
+            )
+            self.ax.add_patch(circle)
+
     def render(self):
         self.plot_anchor_lines()
+        self.plot_mean_displacement_circles()
         self.plot_anchors()
         self.finalize()

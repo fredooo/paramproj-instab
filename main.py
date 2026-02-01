@@ -1,5 +1,6 @@
 import csv
 import os
+import time
 
 import numpy as np
 import torch
@@ -88,21 +89,29 @@ def compute_quality_metrics(D_high, Z_low, k=7):
 
 
 def compute_projection_stability_metrics(reducer, proj_ctx):
-    """Compute stability metrics for the projection method."""
-    # TODO: Measure and report inference time for reducer.transform call over all noisy samples
+    """Compute stability metrics for the projection method.
+
+    Returns (metrics, Z_clusters, inference_time).
+    """
+    start = time.time()
     Z_clusters = [reducer.transform(Xn) for Xn in proj_ctx.X_noisy_per_class]
+    inference_time = time.time() - start
     metrics = compute_stability_metrics(proj_ctx.Z_base, Z_clusters)
-    return metrics, Z_clusters
+    return metrics, Z_clusters, inference_time
 
 
 def compute_nn_metrics(model, proj_ctx, device):
-    """Compute stability metrics for the neural network model."""
-    # TODO: Measure inference time for predict call over all noisy samples
+    """Compute stability metrics for the neural network model.
+
+    Returns (metrics, Z_clusters, Z_base, inference_time).
+    """
     project_fn = lambda X: predict(model, X, device=device)
     Z_base = project_fn(proj_ctx.X_base)
+    start = time.time()
     Z_clusters = [project_fn(Xn) for Xn in proj_ctx.X_noisy_per_class]
+    inference_time = time.time() - start
     metrics = compute_stability_metrics(Z_base, Z_clusters)
-    return metrics, Z_clusters, Z_base
+    return metrics, Z_clusters, Z_base, inference_time
 
 
 def evaluate_projection(run_ctx, data, D_high_te, experiment_cfg, output_dirs):
@@ -128,7 +137,7 @@ def evaluate_projection(run_ctx, data, D_high_te, experiment_cfg, output_dirs):
     path_prefix = os.path.join(output_dirs.models, f"{projection_cfg.name}_{dataset_cfg.name}_{seed}")
 
     # Setup projection
-    reducer, Z_tr, Z_val, Z_te, supports_transform = projection_cfg.setup(
+    reducer, Z_tr, Z_val, Z_te, supports_transform, fit_time = projection_cfg.setup(
         data.X_tr, data.y_tr, data.X_val, data.X_te, seed, path_prefix
     )
 
@@ -159,7 +168,7 @@ def evaluate_projection(run_ctx, data, D_high_te, experiment_cfg, output_dirs):
     # Only compute stability metrics and generate plots if projection supports transform
     row = None
     if supports_transform:
-        stability, Z_clusters = compute_projection_stability_metrics(reducer, proj_ctx)
+        stability, Z_clusters, inference_time = compute_projection_stability_metrics(reducer, proj_ctx)
 
         # Generate plots
         img_prefix = os.path.join(output_dirs.images, f"proj_{projection_cfg.name}_{dataset_cfg.name}_{seed}")
@@ -173,6 +182,8 @@ def evaluate_projection(run_ctx, data, D_high_te, experiment_cfg, output_dirs):
             "test_loss": "N/A",
             "trust": quality["trust"],
             "cont": quality["cont"],
+            "fit_time": fit_time,
+            "inference_time": inference_time,
             **stability,
         }
 
@@ -237,7 +248,7 @@ def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te, experiment_
     nn_quality = compute_quality_metrics(D_high_te, Z_te_nn, k=7)
 
     # Compute NN-side stability metrics
-    nn_stability, Z_clusters_nn, Z_base_nn = compute_nn_metrics(model, proj_ctx, device)
+    nn_stability, Z_clusters_nn, Z_base_nn, inference_time = compute_nn_metrics(model, proj_ctx, device)
 
     # Generate plots for NN model
     img_prefix = os.path.join(output_dirs.images, f"{get_model_prefix(model_cfg)}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}")
@@ -251,6 +262,8 @@ def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te, experiment_
         "test_loss": test_loss,
         "trust": nn_quality["trust"],
         "cont": nn_quality["cont"],
+        "fit_time": None,
+        "inference_time": inference_time,
         **nn_stability,
     }
     return row
@@ -266,6 +279,7 @@ def write_results_csv(rows_by_prefix, results_dir):
     fieldnames = [
         "dataset", "projection", "run_id", "run", "test_loss",
         "trust", "cont",
+        "fit_time", "inference_time",
         "D_dev", "D_bias", "E_NA",
     ]
 
