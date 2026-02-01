@@ -17,9 +17,7 @@ ProjectionContext = namedtuple('ProjectionContext', [
 ])
 
 # Experiment configuration
-ExperimentConfig = namedtuple('ExperimentConfig', [
-    'sigma', 'n_samples', 'sigmas_cq', 'n_samples_cq'
-])
+ExperimentConfig = namedtuple('ExperimentConfig', ['sigma', 'n_samples'])
 
 # Configuration types
 DatasetConfig = namedtuple('DatasetConfig', ['name', 'load_fn', 'input_dim', 'clip_bounds'])

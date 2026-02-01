@@ -43,59 +43,31 @@ def D_bias(Z, z0):
     return np.linalg.norm(z_bar - z0)
 
 
-def V_sigma(Z):
-    """Local projection variance V(sigma).
+def E_NA(Z_clusters, Z_base):
+    """Nearest-Anchor Assignment Error.
 
     Parameters
     ----------
-    Z : ndarray, shape (N, q)
-        Noisy projections.
+    Z_clusters : list of ndarray
+        List of (N, q) arrays - noisy projections per anchor.
+    Z_base : ndarray, shape (C, q)
+        Anchor projections.
 
     Returns
     -------
     float
-        Mean squared distance to neighborhood mean.
+        Misassignment rate in [0, 1].
     """
-    z_bar = Z.mean(axis=0)
-    return np.mean(np.sum((Z - z_bar[None, :]) ** 2, axis=1))
-
-def Q_sigma(Z, sigma):
-    """Noise amplification measure Q(sigma).
-
-    Parameters
-    ----------
-    Z : ndarray, shape (N, q)
-        Noisy projections.
-    sigma : float
-        Noise standard deviation.
-
-    Returns
-    -------
-    float
-        Variance normalized by sigma^2.
-    """
-    return V_sigma(Z) / (sigma ** 2)
-
-
-def C_Q(Z_list, sigmas):
-    """Coefficient of variation of Q(sigma) across noise levels.
-
-    Parameters
-    ----------
-    Z_list : list of ndarray
-        List of noisy projection arrays, one per sigma.
-    sigmas : array-like
-        Corresponding noise levels.
-
-    Returns
-    -------
-    float
-        Coefficient of variation of Q(sigma).
-    """
-    Q_vals = np.array([Q_sigma(Z, sigma) for Z, sigma in zip(Z_list, sigmas)])
-    Q_mean = Q_vals.mean()
-    Q_std = Q_vals.std(ddof=0)
-    return Q_std / Q_mean
+    C = len(Z_base)
+    misassign_rates = []
+    for c, Z_c in enumerate(Z_clusters):
+        # Distances from each noisy point to all anchors: (N, C)
+        dists = np.linalg.norm(Z_c[:, None, :] - Z_base[None, :, :], axis=2)
+        # Nearest anchor for each point
+        nearest = np.argmin(dists, axis=1)
+        # Fraction misassigned
+        misassign_rates.append(np.mean(nearest != c))
+    return np.mean(misassign_rates)
 
 
 def create_noisy_versions(X_base, sigma, n_samples, clip_bounds=(0.0, 1.0)):
@@ -111,74 +83,24 @@ def create_noisy_versions(X_base, sigma, n_samples, clip_bounds=(0.0, 1.0)):
     return result
 
 
-def compute_stability_metrics(Z_base, Z_clusters, X_base, project_fn, experiment_cfg, clip_bounds):
-    """Compute D_dev, D_bias, Q, C_Q for any projection function.
+def compute_stability_metrics(Z_base, Z_clusters):
+    """Compute D_dev, D_bias, E_NA stability metrics.
 
     Args:
         Z_base: anchor points in projection space (n_anchors, 2)
         Z_clusters: list of projected noisy samples per anchor
-        X_base: anchor points in input space (n_anchors, input_dim)
-        project_fn: callable X -> Z (e.g., reducer.transform or model predict)
-        experiment_cfg: ExperimentConfig with sigma, sigmas_cq, n_samples_cq
-        clip_bounds: tuple for create_noisy_versions
 
     Returns:
-        dict with D_dev, D_bias, Q, C_Q
+        dict with D_dev, D_bias, E_NA
     """
-    n_anchors = len(Z_base)
-
     D_dev_val = np.mean([D_dev(Zu, z0) for Zu, z0 in zip(Z_clusters, Z_base)])
     D_bias_val = np.mean([D_bias(Zu, z0) for Zu, z0 in zip(Z_clusters, Z_base)])
-    Q_val = np.mean([Q_sigma(Zu, experiment_cfg.sigma) for Zu in Z_clusters])
-
-    cq_vals = []
-    for i in range(n_anchors):
-        Z_list = [
-            project_fn(create_noisy_versions(
-                X_base[i:i+1], s, experiment_cfg.n_samples_cq, clip_bounds
-            )[0])
-            for s in experiment_cfg.sigmas_cq
-        ]
-        cq_vals.append(C_Q(Z_list, experiment_cfg.sigmas_cq))
-    C_Q_val = np.mean(cq_vals)
 
     return {
         "D_dev": D_dev_val,
         "D_bias": D_bias_val,
-        "Q": Q_val,
-        "C_Q": C_Q_val,
+        "E_NA": E_NA(Z_clusters, Z_base),
     }
-
-# TODO 1: 
-# Impelment the E_NA (Nearest-Anchor Assignment Error)
-# For each class anchor $z_0^{(c)}$ and its corresponding noise-perturbed projections
-# $\{z_i^{(c)}\}_{i=1}^N$, we assign each projected point to its nearest anchor in
-# the projected space:
-# \begin{equation}
-# a(z) = \arg\min_{k} \, \| z - z_0^{(k)} \|_2 .
-# \end{equation}
-# We then define the misassignment rate at noise level $\sigma$ as
-# \begin{equation}
-# E_{\text{NA}}(\sigma)
-# =
-# \frac{1}{C}
-# \sum_{c=1}^{C}
-# \frac{1}{N}
-# \sum_{i=1}^{N}
-# \mathbf{1}\!\left[ a\!\left(z_i^{(c)}\right) \neq c \right],
-# \end{equation}
-# where $C$ denotes the number of anchors and $\mathbf{1}[\cdot]$ is the indicator
-# function.
-# This measure quantifies the probability that noise-induced perturbations cause a
-# sample to leave the Voronoi region of its original anchor, providing a direct and
-# interpretable notion of projection robustness under sensor noise.
-
-# TODO 2: Include this only in a plan once TODO 1 is done and E_NA is implemente.
-# Then replace the computation of Q anc C_Q in the
-# codebase, specifically in compute_stability_metrics, with E_NA. This will
-# involve effect the dict that is returned by compute_stability_metrics.
-# Thus, ceck the calls to compute_stability_metrics in main.py and ensure
-# that the returned metrics dict is handled correctly. 
 
 # =============================================================================
 # Projection Quality Metrics (trustworthiness & continuity)

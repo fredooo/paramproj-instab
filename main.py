@@ -87,27 +87,21 @@ def compute_quality_metrics(D_high, Z_low, k=7):
     return {"trust": trust, "cont": cont}
 
 
-def compute_projection_stability_metrics(reducer, proj_ctx, experiment_cfg, dataset_cfg):
+def compute_projection_stability_metrics(reducer, proj_ctx):
     """Compute stability metrics for the projection method."""
     # TODO: Measure and report inference time for reducer.transform call over all noisy samples
     Z_clusters = [reducer.transform(Xn) for Xn in proj_ctx.X_noisy_per_class]
-    metrics = compute_stability_metrics(
-        proj_ctx.Z_base, Z_clusters, proj_ctx.X_base,
-        reducer.transform, experiment_cfg, dataset_cfg.clip_bounds
-    )
+    metrics = compute_stability_metrics(proj_ctx.Z_base, Z_clusters)
     return metrics, Z_clusters
 
 
-def compute_nn_metrics(model, proj_ctx, experiment_cfg, dataset_cfg, device):
+def compute_nn_metrics(model, proj_ctx, device):
     """Compute stability metrics for the neural network model."""
     # TODO: Measure inference time for predict call over all noisy samples
     project_fn = lambda X: predict(model, X, device=device)
     Z_base = project_fn(proj_ctx.X_base)
     Z_clusters = [project_fn(Xn) for Xn in proj_ctx.X_noisy_per_class]
-    metrics = compute_stability_metrics(
-        Z_base, Z_clusters, proj_ctx.X_base,
-        project_fn, experiment_cfg, dataset_cfg.clip_bounds
-    )
+    metrics = compute_stability_metrics(Z_base, Z_clusters)
     return metrics, Z_clusters, Z_base
 
 
@@ -165,9 +159,7 @@ def evaluate_projection(run_ctx, data, D_high_te, experiment_cfg, output_dirs):
     # Only compute stability metrics and generate plots if projection supports transform
     row = None
     if supports_transform:
-        stability, Z_clusters = compute_projection_stability_metrics(
-            reducer, proj_ctx, experiment_cfg, dataset_cfg
-        )
+        stability, Z_clusters = compute_projection_stability_metrics(reducer, proj_ctx)
 
         # Generate plots
         img_prefix = os.path.join(output_dirs.images, f"proj_{projection_cfg.name}_{dataset_cfg.name}_{seed}")
@@ -245,9 +237,7 @@ def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te, experiment_
     nn_quality = compute_quality_metrics(D_high_te, Z_te_nn, k=7)
 
     # Compute NN-side stability metrics
-    nn_stability, Z_clusters_nn, Z_base_nn = compute_nn_metrics(
-        model, proj_ctx, experiment_cfg, run_ctx.dataset_cfg, device
-    )
+    nn_stability, Z_clusters_nn, Z_base_nn = compute_nn_metrics(model, proj_ctx, device)
 
     # Generate plots for NN model
     img_prefix = os.path.join(output_dirs.images, f"{get_model_prefix(model_cfg)}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}")
@@ -276,7 +266,7 @@ def write_results_csv(rows_by_prefix, results_dir):
     fieldnames = [
         "dataset", "projection", "run_id", "run", "test_loss",
         "trust", "cont",
-        "D_dev", "D_bias", "Q", "C_Q",
+        "D_dev", "D_bias", "E_NA",
     ]
 
     for prefix, rows in rows_by_prefix.items():
@@ -346,8 +336,6 @@ def main():
     experiment_cfg = ExperimentConfig(
         sigma=0.15,
         n_samples=2000,
-        sigmas_cq=[0.05, 0.1, 0.15],
-        n_samples_cq=1000
     )
     seeds = [SEED + r for r in range(N_RUNS)]
 

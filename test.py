@@ -30,8 +30,6 @@ TEST_TRAINING_CONFIG = TrainingConfig(
 TEST_EXPERIMENT_CONFIG = ExperimentConfig(
     sigma=0.15,
     n_samples=500,       # Reduced for speed
-    sigmas_cq=[0.1],     # Fewer sigma values
-    n_samples_cq=200,    # Reduced for speed
 )
 
 
