@@ -367,6 +367,7 @@ def main():
         training_cfg=TRAINING_CONFIG,
         experiment_cfg=experiment_cfg,
     )
+    # Single write at end; incremental writes complex due to per-seed data deps (data, D_high_te, proj_ctx)
     write_results_csv(rows, RESULTS_DIR)
 
 
