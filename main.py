@@ -15,7 +15,7 @@ from train import train_projection_model, evaluate_projection_model
 from utils import set_seed, centroid_representative_indices, plot_projection_data
 
 SEED = 777
-N_RUNS = 1
+N_RUNS = 10
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 RESULTS_DIR = "./output/results"
 MODELS_DIR = "./output/models"
@@ -48,20 +48,20 @@ MODELS = [
     ModelConfig(False, 512, 3, True, 10.0),
     ModelConfig(True, 512, 3, True, 10.0),
 
-    ModelConfig(False, 512, 6, False, 0.0),
-    ModelConfig(True, 512, 6, False, 0.0),
-    ModelConfig(False, 512, 6, True, 10.0),
-    ModelConfig(True, 512, 6, True, 10.0),
+    #ModelConfig(False, 512, 6, False, 0.0),
+    #ModelConfig(True, 512, 6, False, 0.0),
+    #ModelConfig(False, 512, 6, True, 10.0),
+    #ModelConfig(True, 512, 6, True, 10.0),
 
-    ModelConfig(False, 1024, 3, False, 0.0),
-    ModelConfig(True, 1024, 3, False, 0.0),
-    ModelConfig(False, 1024, 3, True, 10.0),
-    ModelConfig(True, 1024, 3, True, 10.0),
+    #ModelConfig(False, 1024, 3, False, 0.0),
+    #ModelConfig(True, 1024, 3, False, 0.0),
+    #ModelConfig(False, 1024, 3, True, 10.0),
+    #ModelConfig(True, 1024, 3, True, 10.0),
 
     ModelConfig(False, 1024, 6, False, 0.0),
-    ModelConfig(True, 1024, 6, False, 0.0),
-    ModelConfig(False, 1024, 6, True, 10.0),
-    ModelConfig(True, 1024, 6, True, 10.0),
+    #ModelConfig(True, 1024, 6, False, 0.0),
+    #ModelConfig(False, 1024, 6, True, 10.0),
+    #ModelConfig(True, 1024, 6, True, 10.0),
 ]
 
 
@@ -89,6 +89,7 @@ def compute_quality_metrics(D_high, Z_low, k=7):
 
 def compute_projection_stability_metrics(reducer, proj_ctx, experiment_cfg, dataset_cfg):
     """Compute stability metrics for the projection method."""
+    # TODO: Measure and report inference time for reducer.transform call over all noisy samples
     Z_clusters = [reducer.transform(Xn) for Xn in proj_ctx.X_noisy_per_class]
     metrics = compute_stability_metrics(
         proj_ctx.Z_base, Z_clusters, proj_ctx.X_base,
@@ -99,6 +100,7 @@ def compute_projection_stability_metrics(reducer, proj_ctx, experiment_cfg, data
 
 def compute_nn_metrics(model, proj_ctx, experiment_cfg, dataset_cfg, device):
     """Compute stability metrics for the neural network model."""
+    # TODO: Measure inference time for predict call over all noisy samples
     project_fn = lambda X: predict(model, X, device=device)
     Z_base = project_fn(proj_ctx.X_base)
     Z_clusters = [project_fn(Xn) for Xn in proj_ctx.X_noisy_per_class]
