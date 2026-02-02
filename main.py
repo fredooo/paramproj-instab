@@ -24,7 +24,7 @@ IMAGES_DIR = "./output/images"
 OUTPUT_DIRS = OutputDirs(MODELS_DIR, IMAGES_DIR, RESULTS_DIR)
 
 TRAINING_CONFIG = TrainingConfig(
-    max_epochs=10,
+    max_epochs=100,
     batch_size=256,
     lr=1e-3,
     patience=10,
