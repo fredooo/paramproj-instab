@@ -12,6 +12,13 @@ to the same percentile of the dataset's natural pairwise distance distribution.
 
 Additionally, --effective mode measures the actual perturbation distance after clipping,
 since image datasets (mnist, fmnist) are clipped to [0,1] which reduces effective noise.
+
+Result: Effective distance measurement (N=5/class, 1000 noisy samples)
+dataset   dim  sigma   d_exp   d_eff  ratio
+mnist     784 0.1689  4.7292  3.4577  0.731
+fmnist    784 0.1597  4.4716  3.6878  0.825
+har       561 0.1433  3.3941  3.3940  1.000
+blobs      10 0.7371  2.3309  2.3296  0.999
 """
 from dataset_loaders.mnist_loader import load_mnist_split
 from dataset_loaders.fmnist_loader import load_fmnist_split
@@ -20,7 +27,7 @@ from dataset_loaders.blobs_loader import load_blobs_split
 from scipy.spatial.distance import pdist
 import numpy as np
 
-# Calibration results for p=0.002500 (MNIST_THRESHOLD=5.0):
+# Calibration results for p=0.002500:
 #   dataset  distance   dim   sigma
 #   mnist    4.7292     784   0.1689
 #   fmnist   4.4729     784   0.1597
