@@ -2,14 +2,14 @@
 from dataset_loaders import load_mnist_split
 from main import (
     run_experiment, write_results_csv,
-    DatasetConfig, ProjectionConfig, ModelConfig, ExperimentConfig,
+    DatasetConfig, ProjectionConfig, ModelConfig,
 )
 from typedefs import OutputDirs, TrainingConfig
 from projection_utils import umap_setup
 
 # Minimal configuration
 TEST_DATASETS = [
-    DatasetConfig("mnist", load_mnist_split, 784, (0.0, 1.0)),
+    DatasetConfig("mnist", load_mnist_split, 784, (0.0, 1.0), 0.1689, 500),
 ]
 
 TEST_PROJECTIONS = [
@@ -27,11 +27,6 @@ TEST_TRAINING_CONFIG = TrainingConfig(
     patience=10,
 )
 
-TEST_EXPERIMENT_CONFIG = ExperimentConfig(
-    sigma=0.15,
-    n_samples=500,       # Reduced for speed
-)
-
 
 def main():
     print("Running smoke test...")
@@ -41,7 +36,6 @@ def main():
         models=TEST_MODELS,
         seeds=[777],  # Single seed
         training_cfg=TEST_TRAINING_CONFIG,
-        experiment_cfg=TEST_EXPERIMENT_CONFIG,
         output_dirs=OutputDirs("./test_output/models", "./test_output/images", "./test_output/results"),
     )
     write_results_csv(rows, "./test_output/results")

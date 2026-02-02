@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from scipy.spatial.distance import pdist, squareform
 
-from typedefs import DataSplit, ProjectionContext, ExperimentConfig, DatasetConfig, ProjectionConfig, ModelConfig, TrainData, OutputDirs, RunContext, TrainingConfig
+from typedefs import DataSplit, ProjectionContext, DatasetConfig, ProjectionConfig, ModelConfig, TrainData, OutputDirs, RunContext, TrainingConfig
 from dataset_loaders import load_blobs_split, load_fmnist_split, load_har_split, load_mnist_split
 from measures import compute_stability_metrics, create_noisy_versions, metric_trustworthiness_numba, metric_continuity_numba
 from models import predict, create_model, get_model_prefix
@@ -31,10 +31,10 @@ TRAINING_CONFIG = TrainingConfig(
 )
 
 DATASETS = [
-    DatasetConfig("mnist", load_mnist_split, 784, (0.0, 1.0)),
-    DatasetConfig("fmnist", load_fmnist_split, 784, (0.0, 1.0)),
-    DatasetConfig("blobs", load_blobs_split, 10, None),
-    DatasetConfig("har", load_har_split, 561, None),
+    DatasetConfig("mnist", load_mnist_split, 784, (0.0, 1.0), 0.1689, 2000),
+    DatasetConfig("fmnist", load_fmnist_split, 784, (0.0, 1.0), 0.1597, 2000),
+    DatasetConfig("blobs", load_blobs_split, 10, None, 0.7371, 2000),
+    DatasetConfig("har", load_har_split, 561, None, 0.1433, 2500),
 ]
 
 PROJECTIONS = [
@@ -114,7 +114,7 @@ def compute_nn_metrics(model, proj_ctx, device):
     return metrics, Z_clusters, Z_base, inference_time
 
 
-def evaluate_projection(run_ctx, data, D_high_te, experiment_cfg, output_dirs):
+def evaluate_projection(run_ctx, data, D_high_te, output_dirs):
     """Evaluate a projection method (with supports_transform=True) as a first-class model.
 
     Parameters
@@ -123,7 +123,6 @@ def evaluate_projection(run_ctx, data, D_high_te, experiment_cfg, output_dirs):
     data : DataSplit
     D_high_te : ndarray
         Precomputed high-dimensional distance matrix.
-    experiment_cfg : ExperimentConfig
     output_dirs : OutputDirs
 
     Returns
@@ -154,7 +153,7 @@ def evaluate_projection(run_ctx, data, D_high_te, experiment_cfg, output_dirs):
     X_base = data.X_te[base_idxs]
     Z_base = Z_te[base_idxs]
     X_noisy_per_class = create_noisy_versions(
-        X_base, experiment_cfg.sigma, experiment_cfg.n_samples, clip_bounds=dataset_cfg.clip_bounds
+        X_base, dataset_cfg.sigma, dataset_cfg.n_samples, clip_bounds=dataset_cfg.clip_bounds
     )
 
     # Build projection context for NN evaluation
@@ -240,7 +239,7 @@ def load_or_train_model(model_cfg, run_ctx, train_data, training_cfg, device, mo
     return model, training_time
 
 
-def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te, experiment_cfg,
+def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te,
                       training_cfg, device, output_dirs):
     """Evaluate an NN model for one (dataset, projection, model, seed) configuration."""
     train_data = TrainData(data.X_tr, proj_ctx.Z_tr, data.X_val, proj_ctx.Z_val)
@@ -302,7 +301,7 @@ def write_results_csv(rows_by_prefix, results_dir):
         print(f"Wrote {path} ({len(rows)} rows)")
 
 
-def run_experiment(datasets, projections, models, seeds, training_cfg, experiment_cfg,
+def run_experiment(datasets, projections, models, seeds, training_cfg,
                    output_dirs=OUTPUT_DIRS, device=DEVICE):
     """Run experiment with given configuration. Returns rows_by_prefix dict."""
     os.makedirs(output_dirs.models, exist_ok=True)
@@ -331,7 +330,7 @@ def run_experiment(datasets, projections, models, seeds, training_cfg, experimen
 
                 # Evaluate projection (returns None for row if not supports_transform)
                 proj_row, proj_ctx = evaluate_projection(
-                    run_ctx, data, D_high_te, experiment_cfg, output_dirs
+                    run_ctx, data, D_high_te, output_dirs
                 )
 
                 # Store projection results if available
@@ -343,7 +342,7 @@ def run_experiment(datasets, projections, models, seeds, training_cfg, experimen
                 for model_cfg in models:
                     print(f"      Evaluating model: {get_model_prefix(model_cfg)}")
                     nn_row = evaluate_nn_model(
-                        run_ctx, model_cfg, data, proj_ctx, D_high_te, experiment_cfg,
+                        run_ctx, model_cfg, data, proj_ctx, D_high_te,
                         training_cfg, device, output_dirs
                     )
                     nn_row["run_id"] = run_id
@@ -353,10 +352,6 @@ def run_experiment(datasets, projections, models, seeds, training_cfg, experimen
 
 
 def main():
-    experiment_cfg = ExperimentConfig(
-        sigma=0.15,
-        n_samples=2000,
-    )
     seeds = [SEED + r for r in range(N_RUNS)]
 
     rows = run_experiment(
@@ -365,7 +360,6 @@ def main():
         models=MODELS,
         seeds=seeds,
         training_cfg=TRAINING_CONFIG,
-        experiment_cfg=experiment_cfg,
     )
     # Single write at end; incremental writes complex due to per-seed data deps (data, D_high_te, proj_ctx)
     write_results_csv(rows, RESULTS_DIR)

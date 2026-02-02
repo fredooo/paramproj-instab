@@ -16,11 +16,8 @@ ProjectionContext = namedtuple('ProjectionContext', [
     'X_base', 'Z_base', 'X_noisy_per_class'
 ])
 
-# Experiment configuration
-ExperimentConfig = namedtuple('ExperimentConfig', ['sigma', 'n_samples'])
-
 # Configuration types
-DatasetConfig = namedtuple('DatasetConfig', ['name', 'load_fn', 'input_dim', 'clip_bounds'])
+DatasetConfig = namedtuple('DatasetConfig', ['name', 'load_fn', 'input_dim', 'clip_bounds', 'sigma', 'n_samples'])
 ProjectionConfig = namedtuple('ProjectionConfig', ['name', 'setup'])
 ModelConfig = namedtuple('ModelConfig', ['use_spec', 'hidden_dim', 'n_hidden', 'use_jac', 'lambda_jac'])
 
