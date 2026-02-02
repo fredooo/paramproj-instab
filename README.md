@@ -76,11 +76,12 @@ python3 test.py
 
 Given anchor point $\mathbf{z}_0$ and $N$ noisy projections $\{\mathbf{z}_i\}_{i=1}^N$:
 
-- **$D_{\text{dev}}$** — Mean displacement (noise-induced drift):
-  $$D_{\text{dev}} = \frac{1}{N} \sum_{i=1}^{N} \|\mathbf{z}_i - \mathbf{z}_0\|$$
+- **$D_{\text{dev}}$** — Mean displacement (noise-induced drift):  
+  $D_{\text{dev}} = \frac{1}{N} \sum_{i=1}^{N} \lVert \mathbf{z}_i - \mathbf{z}_0 \rVert$
 
-- **$D_{\text{bias}}$** — Systematic bias:
-  $$D_{\text{bias}} = \|\bar{\mathbf{z}} - \mathbf{z}_0\|, \quad \bar{\mathbf{z}} = \frac{1}{N}\sum_{i=1}^{N} \mathbf{z}_i$$
+- **$D_{\text{bias}}$** — Systematic bias:  
+  $D_{\text{bias}} = \lVert \bar{\mathbf{z}} - \mathbf{z}_0 \rVert,\quad
+  \bar{\mathbf{z}} = \frac{1}{N}\sum_{i=1}^{N} \mathbf{z}_i$
 
 - **$E_{\text{NA}}$** — Nearest-Anchor misassignment error: fraction of noisy projections assigned to wrong anchor via nearest-neighbor.
 
