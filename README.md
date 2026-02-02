@@ -78,7 +78,7 @@ Given anchor point $z_0$ and $N$ noisy projections $\{z_i\}_{i=1}^N$:
 
 - **$D_{\text{dev}}$** — Mean displacement: $D_{\text{dev}} = \frac{1}{N} \sum_{i=1}^{N} \lVert z_i - z_0 \rVert$
 
-- **$D_{\text{bias}}$** — Displacement bias: $D_{\text{bias}} = \lVert \bar{z} - z_0 \rVert$ with $\bar{z} = \frac{1}{N}\sum_{i=1}^{N} z_i$
+- **$D_{\text{bias}}$** — Displacement bias: $D_{\text{bias}} = \lVert \overline{z} - z_0 \rVert$ with $\overline{z} = \frac{1}{N}\sum_{i=1}^{N} z_i$
 
 - **$E_{\text{NA}}$** — Nearest-Anchor Assignment Error: Fraction of noisy projections assigned to wrong anchor via nearest-neighbor.
 
