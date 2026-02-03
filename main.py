@@ -8,7 +8,7 @@ from scipy.spatial.distance import pdist, squareform
 
 from typedefs import DataSplit, ProjectionContext, DatasetConfig, ProjectionConfig, ModelConfig, TrainData, OutputDirs, RunContext, TrainingConfig
 from dataset_loaders import load_blobs_split, load_fmnist_split, load_har_split, load_mnist_split
-from measures import compute_stability_metrics, create_noisy_versions, metric_trustworthiness_numba, metric_continuity_numba
+from measures import compute_stability_metrics, create_noisy_versions, metric_trustworthiness_numba, metric_continuity_numba, trustworthiness_continuity_powers_of_two
 from models import predict, create_model, get_model_prefix
 from plotting.plot_all import plot_all
 from projection_utils import tsne_setup, umap_setup
@@ -80,12 +80,20 @@ def compute_quality_metrics(D_high, Z_low, k=7):
 
     Returns
     -------
-    dict with trust and cont values.
+    dict with trust_p2, cont_p2 (aggregated powers-of-two), trust, cont (k=7).
     """
     D_low = squareform(pdist(Z_low, metric='euclidean'))
+
+    # Aggregated powers-of-two metrics
+    ks, trust_array, cont_array = trustworthiness_continuity_powers_of_two(D_high, D_low)
+    trust_p2 = np.mean(trust_array)
+    cont_p2 = np.mean(cont_array)
+
+    # k=7 metrics
     trust = metric_trustworthiness_numba(D_high, D_low, k=k)
     cont = metric_continuity_numba(D_high, D_low, k=k)
-    return {"trust": trust, "cont": cont}
+
+    return {"trust_p2": trust_p2, "cont_p2": cont_p2, "trust": trust, "cont": cont}
 
 
 def compute_projection_stability_metrics(reducer, proj_ctx):
@@ -179,6 +187,8 @@ def evaluate_projection(run_ctx, data, D_high_te, output_dirs):
             "projection": projection_cfg.name,
             "run": seed,
             "test_loss": "N/A",
+            "trust_p2": quality["trust_p2"],
+            "cont_p2": quality["cont_p2"],
             "trust": quality["trust"],
             "cont": quality["cont"],
             "fit_time": fit_time,
@@ -265,6 +275,8 @@ def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te,
         "projection": run_ctx.projection_cfg.name,
         "run": run_ctx.seed,
         "test_loss": test_loss,
+        "trust_p2": nn_quality["trust_p2"],
+        "cont_p2": nn_quality["cont_p2"],
         "trust": nn_quality["trust"],
         "cont": nn_quality["cont"],
         "fit_time": fit_time,
@@ -283,7 +295,7 @@ def write_results_csv(rows_by_prefix, results_dir):
 
     fieldnames = [
         "dataset", "projection", "run_id", "run", "test_loss",
-        "trust", "cont",
+        "trust_p2", "cont_p2", "trust", "cont",
         "fit_time", "inference_time",
         "D_dev", "D_bias", "E_NA",
     ]
