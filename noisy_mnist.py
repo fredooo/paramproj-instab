@@ -39,7 +39,7 @@ def main():
 
     plt.suptitle("Noisy MNIST digits (one per class, varying noise levels)", fontsize=14, y=1.01)
     plt.tight_layout()
-    plt.savefig("./output/noisy_mnist.png", dpi=300, bbox_inches="tight")
+    plt.savefig("./output/images/noisy_mnist.png", dpi=300, bbox_inches="tight")
     plt.close()
 
 
