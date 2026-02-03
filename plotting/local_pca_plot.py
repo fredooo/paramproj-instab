@@ -17,7 +17,12 @@ class LocalPCAPlot(Base2DPlot):
         pad=0.1,
         n_std=3.0,
         draw_axes=True,
+        draw_bias_line=True,
+        draw_points=True,
+        point_size=8,
+        point_alpha=0.05,
         axis_lw=1.0,
+        bias_line_lw=1.5,
         ellipse_lw=2.0,
         ellipse_alpha=1.0,
         min_points=3,
@@ -37,7 +42,12 @@ class LocalPCAPlot(Base2DPlot):
         )
         self.n_std = float(n_std)
         self.draw_axes = bool(draw_axes)
+        self.draw_bias_line = bool(draw_bias_line)
+        self.draw_points = bool(draw_points)
+        self.point_size = float(point_size)
+        self.point_alpha = float(point_alpha)
         self.axis_lw = float(axis_lw)
+        self.bias_line_lw = float(bias_line_lw)
         self.ellipse_lw = float(ellipse_lw)
         self.ellipse_alpha = float(ellipse_alpha)
         self.min_points = int(min_points)
@@ -74,6 +84,22 @@ class LocalPCAPlot(Base2DPlot):
 
         return center, eigvals, eigvecs
 
+    def plot_bias_lines(self):
+        """Draw line from anchor to cluster center (visualizes D_bias)."""
+        for i, Z in enumerate(self.Z_clusters):
+            Z = np.asarray(Z)
+            if len(Z) < self.min_points:
+                continue
+            center = Z.mean(axis=0)
+            anchor = self.anchors[i]
+            self.ax.plot(
+                [anchor[0], center[0]],
+                [anchor[1], center[1]],
+                color=self.colors[i],
+                linewidth=self.bias_line_lw,
+                zorder=3,
+            )
+
     def plot_pca_ellipses(self):
         for i, Z in enumerate(self.Z_clusters):
             Z = np.asarray(Z)
@@ -105,7 +131,7 @@ class LocalPCAPlot(Base2DPlot):
                 edgecolor=self.colors[i],
                 linewidth=self.ellipse_lw,
                 alpha=self.ellipse_alpha,
-                zorder=3,
+                zorder=2,
             )
             self.ax.add_patch(ell)
 
@@ -123,7 +149,7 @@ class LocalPCAPlot(Base2DPlot):
                     [p0a[1], p0b[1]],
                     color=self.colors[i],
                     linewidth=self.axis_lw,
-                    zorder=3,
+                    zorder=2,
                 )
 
                 # Minor axis
@@ -134,10 +160,14 @@ class LocalPCAPlot(Base2DPlot):
                     [p1a[1], p1b[1]],
                     color=self.colors[i],
                     linewidth=self.axis_lw,
-                    zorder=3,
+                    zorder=2,
                 )
 
     def render(self):
+        if self.draw_points:
+            self.plot_points(size=self.point_size, alpha=self.point_alpha)
         self.plot_pca_ellipses()
+        if self.draw_bias_line:
+            self.plot_bias_lines()
         self.plot_anchors()
         self.finalize()
