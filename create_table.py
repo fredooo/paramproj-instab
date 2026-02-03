@@ -26,8 +26,8 @@ DATASET_LABELS = {
 # Metrics for each section
 SECTIONS = [
     ('Average Loss (lower is better)', 'test_loss'),
-    ('Average Trustworthiness $k=7$ (higher is better)', 'trust'),
-    ('Average Continuity with $k=7$ (higher is better)', 'cont'),
+    ('Average Trustworthiness $T(k)$ with $k \\in \\{2, 4, 8, \\dots, n / 2\\}$ (higher is better)', 'trust_p2'),
+    ('Average Continuity $C(k)$ with $k \\in \\{2, 4, 8, \\dots, n / 2\\}$ (higher is better)', 'cont_p2'),
     ('Average Displacement (lower is better)', 'D_dev'),
     ('Displacement Bias (lower is better)', 'D_bias'),
     ('Average Anchor Assignment Error (lower is better)', 'E_NA'),
@@ -58,7 +58,7 @@ def load_and_aggregate():
     aggregated = {}
 
     # Columns to aggregate
-    metric_cols = ['test_loss', 'trust', 'cont', 'D_dev', 'D_bias', 'E_NA', 'inference_time']
+    metric_cols = ['test_loss', 'trust_p2', 'cont_p2', 'D_dev', 'D_bias', 'E_NA', 'inference_time']
 
     for model_name, csv_file in MODEL_FILES.items():
         csv_path = results_dir / csv_file
