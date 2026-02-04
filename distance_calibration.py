@@ -27,12 +27,6 @@ from dataset_loaders.blobs_loader import load_blobs_split
 from scipy.spatial.distance import pdist
 import numpy as np
 
-# Calibration results for p=0.002500:
-#   dataset  distance   dim   sigma
-#   mnist    4.7292     784   0.1689
-#   fmnist   4.4729     784   0.1597
-#   har      3.3938     561   0.1433
-#   blobs    2.3309     10    0.7371
 
 SEED = 777
 MNIST_THRESHOLD = 5.0  # reference distance threshold on MNIST
