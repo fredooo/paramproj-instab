@@ -150,8 +150,10 @@ def evaluate_projection(run_ctx, data, D_high_te, output_dirs):
 
     # Plot train/val/test projections
     for Z, y, subset in [(Z_tr, data.y_tr, "train"), (Z_val, data.y_val, "val"), (Z_te, data.y_te, "test")]:
-        filename = os.path.join(output_dirs.images, f"{projection_cfg.name}_{dataset_cfg.name}_{seed}_{subset}")
-        plot_projection_data(Z, y, filename)
+        filename = os.path.join(output_dirs.images, f"{projection_cfg.name}_{dataset_cfg.name}_{seed}_{subset}.png")
+        subset_base_idxs = centroid_representative_indices(Z, y)
+        subset_anchors = Z[subset_base_idxs]
+        plot_projection_data(Z, y, filename, anchors=subset_anchors)
 
     # Compute projection quality metrics (trustworthiness & continuity on clean test data)
     quality = compute_quality_metrics(D_high_te, Z_te, k=7)
@@ -262,8 +264,12 @@ def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te,
     Z_te_nn = predict(model, data.X_te, device=device)
     nn_quality = compute_quality_metrics(D_high_te, Z_te_nn, k=7)
 
-    # Compute NN-side stability metrics
+    # Compute NN-side stability metrics (moved up)
     nn_stability, Z_clusters_nn, Z_base_nn, inference_time = compute_nn_metrics(model, proj_ctx, device)
+
+    # Plot NN test predictions with anchors
+    test_img = os.path.join(output_dirs.images, f"{get_model_prefix(model_cfg)}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}_test.png")
+    plot_projection_data(Z_te_nn, data.y_te, test_img, anchors=Z_base_nn)
 
     # Generate plots for NN model
     img_prefix = os.path.join(output_dirs.images, f"{get_model_prefix(model_cfg)}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}")

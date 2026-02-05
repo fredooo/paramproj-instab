@@ -40,10 +40,11 @@ def labels_to_clusters(Z, y):
     return clusters
 
 
-def plot_projection_data(Z_data, y_data, filename):
+def plot_projection_data(Z_data, y_data, filename, anchors=None):
     Z_clusters = labels_to_clusters(Z_data, y_data)
     plot = ScatterPlot(
         Z_clusters=Z_clusters,
+        anchors=anchors,
         point_size=2,
         point_alpha=0.6,
         figsize=(6, 6),
