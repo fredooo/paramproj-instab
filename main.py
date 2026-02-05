@@ -264,7 +264,7 @@ def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te,
     Z_te_nn = predict(model, data.X_te, device=device)
     nn_quality = compute_quality_metrics(D_high_te, Z_te_nn, k=7)
 
-    # Compute NN-side stability metrics (moved up)
+    # Compute NN-side stability metrics
     nn_stability, Z_clusters_nn, Z_base_nn, inference_time = compute_nn_metrics(model, proj_ctx, device)
 
     # Plot NN test predictions with anchors
