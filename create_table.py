@@ -6,7 +6,6 @@ from pathlib import Path
 
 # Model → CSV file mapping
 MODEL_FILES = {
-    #'UMAP': 'proj_umap.csv',
     'MLP-small': 'nn_MLP_h512_n3_nojac.csv',
     'MLP-large': 'nn_MLP_h1024_n6_nojac.csv',
     'MLP-small+J': 'nn_MLP_h512_n3_jac10.0.csv',
@@ -20,7 +19,7 @@ DATASET_LABELS = {
     'blobs': 'Blobs',
     'har': 'HAR',
     'mnist': 'MNIST',
-    'fmnist': 'Fashion-MNIST',
+    'fmnist': 'Fashion',
 }
 
 # Metrics for each section
@@ -31,7 +30,6 @@ SECTIONS = [
     ('Average Displacement (lower is better)', 'D_dev'),
     ('Displacement Bias (lower is better)', 'D_bias'),
     ('Average Anchor Assignment Error (lower is better)', 'E_NA'),
-    ('Inference time 2000 samples (lower is better)', 'inference_time'),
 ]
 
 
@@ -58,7 +56,7 @@ def load_and_aggregate():
     aggregated = {}
 
     # Columns to aggregate
-    metric_cols = ['test_loss', 'trust_p2', 'cont_p2', 'D_dev', 'D_bias', 'E_NA', 'inference_time']
+    metric_cols = ['test_loss', 'trust_p2', 'cont_p2', 'D_dev', 'D_bias', 'E_NA']
 
     for model_name, csv_file in MODEL_FILES.items():
         csv_path = results_dir / csv_file
@@ -82,20 +80,20 @@ def generate_latex_table(aggregated):
     """Generate LaTeX table with aggregated results."""
 
     lines = []
-    lines.append(r'\begin{table}[htbp]')
+    lines.append(r'\begin{table}[t]')
+    lines.append(r'\setlength{\tabcolsep}{1.1mm}')
+    lines.append(r'\small')
     lines.append(r'\centering')
-    lines.append(r'\caption{Comparison of projection methods across datasets}')
-    lines.append(r'\label{tab:comparison}')
     lines.append(r'\begin{tabular}{lcccc}')
-    lines.append(r'\toprule')
+    #lines.append(r'\hline')
     lines.append(r'\textbf{Model} & \textbf{Blobs} & \textbf{HAR} & \textbf{MNIST} & \textbf{Fashion-MNIST} \\')
-    lines.append(r'\midrule')
-
+    lines.append(r'\hline')
+    line.append(r'\hline')
     for section_idx, (section_name, metric_col) in enumerate(SECTIONS):
         if section_idx > 0:
-            lines.append(r'\midrule')
+            lines.append(r'\hline')
 
-        lines.append(f'\\multicolumn{{5}}{{c}}{{\\textit{{{section_name}}}}} \\\\\n\\midrule')
+        lines.append(f'\\multicolumn{{5}}{{c}}{{\\textit{{{section_name}}}}} \\\\\n\\hline')
 
         # Determine optimization direction
         is_lower_better = 'lower is better' in section_name.lower()
@@ -144,8 +142,11 @@ def generate_latex_table(aggregated):
             row_parts = [f'{model_name}'] + [f'& {val}' for val in row_values]
             lines.append(' '.join(row_parts) + r' \\')
 
-    lines.append(r'\bottomrule')
+    #lines.append(r'\hline')
     lines.append(r'\end{tabular}')
+    lines.append(r'\caption{Stability and quality metrics for MLP-based parametric projections nased on UMAP with different regularization strategies across datasets. Bold values indicate best performance per metric and dataset.}')
+    lines.append(r'\label{tab:comparison}')
+    lines.append(r'\vspace{-1.5em}')
     lines.append(r'\end{table}')
 
     return '\n'.join(lines)
