@@ -34,7 +34,7 @@ DATASETS = [
     DatasetConfig("mnist", load_mnist_split, 784, (0.0, 1.0), 0.1689, 2000),
     DatasetConfig("fmnist", load_fmnist_split, 784, (0.0, 1.0), 0.1597, 2000),
     DatasetConfig("blobs", load_blobs_split, 10, None, 0.7371, 2000),
-    DatasetConfig("har", load_har_split, 561, None, 0.1433, 2500),
+    DatasetConfig("har", load_har_split, 561, None, 0.1433, 2000),
 ]
 
 PROJECTIONS = [
@@ -46,25 +46,23 @@ PROJECTIONS = [
 MODELS = [
     ModelConfig(False, 512, 3, False, 0.0),
     ModelConfig(True, 512, 3, False, 0.0),
+    
+    ModelConfig(False, 512, 3, True, 1.0),
+    ModelConfig(True, 512, 3, True, 1.0),
+    
     ModelConfig(False, 512, 3, True, 10.0),
     ModelConfig(True, 512, 3, True, 10.0),
-    ModelConfig(True, 512, 3, False, 20.0),
+    
+    ModelConfig(False, 512, 3, True, 20.0),
     ModelConfig(True, 512, 3, True, 20.0),
-
-    #ModelConfig(False, 512, 6, False, 0.0),
-    #ModelConfig(True, 512, 6, False, 0.0),
-    #ModelConfig(False, 512, 6, True, 10.0),
-    #ModelConfig(True, 512, 6, True, 10.0),
-
-    #ModelConfig(False, 1024, 3, False, 0.0),
-    #ModelConfig(True, 1024, 3, False, 0.0),
-    #ModelConfig(False, 1024, 3, True, 10.0),
-    #ModelConfig(True, 1024, 3, True, 10.0),
+    
+    ModelConfig(False, 512, 3, True, 40.0),
+    ModelConfig(True, 512, 3, True, 40.0),
+    
+    ModelConfig(False, 512, 3, True, 80.0),
+    ModelConfig(True, 512, 3, True, 80.0),
 
     ModelConfig(False, 1024, 6, False, 0.0),
-    #ModelConfig(True, 1024, 6, False, 0.0),
-    #ModelConfig(False, 1024, 6, True, 10.0),
-    #ModelConfig(True, 1024, 6, True, 10.0),
 ]
 
 

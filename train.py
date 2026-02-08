@@ -33,8 +33,11 @@ def train_epoch(model, loader, optimizer, loss_fn, device, use_jacobian=False, l
         loss_fit = loss_fn(pred, zb)
 
         if use_jacobian:
-            grad = torch.autograd.grad(pred.sum(), xb, create_graph=True)[0]
-            loss = loss_fit + lambda_jac * (grad ** 2).mean()
+            loss_jac = 0
+            for j in range(2):
+                g = torch.autograd.grad(pred[:, j].sum(), xb, create_graph=True)[0]
+                loss_jac += (g ** 2).mean()
+            loss = loss_fit + lambda_jac * loss_jac
         else:
             loss = loss_fit
 
