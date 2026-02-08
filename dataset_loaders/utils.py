@@ -8,7 +8,7 @@ def split_data(X, y, seed=777, train_ratio=0.8, val_ratio=0.1):
     n = len(X)
     n_train = int(train_ratio * n)
     n_val = int(val_ratio * n)
-    i_tr, i_val, i_te = idx[:n_train], idx[n_train:n_train+n_val], idx[n_train+n_val:]
+    i_tr, i_val, i_te = idx[:n_train], idx[n_train : n_train + n_val], idx[n_train + n_val :]
     return X[i_tr], y[i_tr], X[i_val], y[i_val], X[i_te], y[i_te]
 
 

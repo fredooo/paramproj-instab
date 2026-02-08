@@ -20,13 +20,14 @@ fmnist    784 0.1597  4.4716  3.6878  0.825
 har       561 0.1433  3.3941  3.3940  1.000
 blobs      10 0.7371  2.3309  2.3296  0.999
 """
-from dataset_loaders.mnist_loader import load_mnist_split
+
+import numpy as np
+from scipy.spatial.distance import pdist
+
+from dataset_loaders.blobs_loader import load_blobs_split
 from dataset_loaders.fmnist_loader import load_fmnist_split
 from dataset_loaders.har_loader import load_har_split
-from dataset_loaders.blobs_loader import load_blobs_split
-from scipy.spatial.distance import pdist
-import numpy as np
-
+from dataset_loaders.mnist_loader import load_mnist_split
 
 SEED = 777
 MNIST_THRESHOLD = 5.0  # reference distance threshold on MNIST
@@ -36,10 +37,10 @@ SUBSAMPLE_SIZE = 7000  # pdist memory grows O(n^2), subsample large datasets
 # clip_bounds: image data clipped to [0,1], vector data unclipped
 # sigma: noise std dev such that expected perturbation distance = d_p
 DATASET_CONFIGS = {
-    'mnist': {'clip_bounds': (0.0, 1.0), 'sigma': 0.1689},
-    'fmnist': {'clip_bounds': (0.0, 1.0), 'sigma': 0.1597},
-    'har': {'clip_bounds': None, 'sigma': 0.1433},
-    'blobs': {'clip_bounds': None, 'sigma': 0.7371},
+    "mnist": {"clip_bounds": (0.0, 1.0), "sigma": 0.1689},
+    "fmnist": {"clip_bounds": (0.0, 1.0), "sigma": 0.1597},
+    "har": {"clip_bounds": None, "sigma": 0.1433},
+    "blobs": {"clip_bounds": None, "sigma": 0.7371},
 }
 
 
@@ -73,10 +74,10 @@ def compute_percentile_calibration(threshold=None, percentile=None):
     perturbations with expected distance d_p.
     """
     loaders = {
-        'mnist': load_mnist_split,
-        'fmnist': load_fmnist_split,
-        'har': load_har_split,
-        'blobs': load_blobs_split,
+        "mnist": load_mnist_split,
+        "fmnist": load_fmnist_split,
+        "har": load_har_split,
+        "blobs": load_blobs_split,
     }
 
     # Determine percentile p from MNIST threshold or use provided percentile
@@ -84,19 +85,19 @@ def compute_percentile_calibration(threshold=None, percentile=None):
         p = percentile
     else:
         thresh = threshold if threshold is not None else MNIST_THRESHOLD
-        X_mnist = get_all_X(loaders['mnist'])
-        D_mnist = pdist(X_mnist, metric='euclidean')
+        X_mnist = get_all_X(loaders["mnist"])
+        D_mnist = pdist(X_mnist, metric="euclidean")
         p = np.mean(D_mnist < thresh)  # fraction of pairs closer than threshold
 
     # For each dataset, find distance at percentile p and derive sigma
-    results = {'percentile': p}
+    results = {"percentile": p}
     for name, load_fn in loaders.items():
         X = get_all_X(load_fn)
-        D = pdist(X, metric='euclidean')
+        D = pdist(X, metric="euclidean")
         d_at_p = np.percentile(D, p * 100)
         dim = X.shape[1]
         sigma = d_at_p / np.sqrt(dim)  # E[||noise||] = sigma * sqrt(dim) = d_at_p
-        results[name] = {'distance': d_at_p, 'dim': dim, 'sigma': sigma}
+        results[name] = {"distance": d_at_p, "dim": dim, "sigma": sigma}
 
     return results
 
@@ -126,10 +127,10 @@ def measure_effective_distance(n_per_class=5, n_noisy=1000):
     - ratio < 1.0: clipping reduces effective noise (mnist ~0.73, fmnist ~0.83)
     """
     loaders = {
-        'mnist': load_mnist_split,
-        'fmnist': load_fmnist_split,
-        'har': load_har_split,
-        'blobs': load_blobs_split,
+        "mnist": load_mnist_split,
+        "fmnist": load_fmnist_split,
+        "har": load_har_split,
+        "blobs": load_blobs_split,
     }
 
     rng = np.random.default_rng(SEED)
@@ -137,8 +138,8 @@ def measure_effective_distance(n_per_class=5, n_noisy=1000):
 
     for name, load_fn in loaders.items():
         cfg = DATASET_CONFIGS[name]
-        sigma = cfg['sigma']
-        clip_bounds = cfg['clip_bounds']
+        sigma = cfg["sigma"]
+        clip_bounds = cfg["clip_bounds"]
 
         # Load data with labels
         X_tr, y_tr, X_val, y_val, X_te, y_te = load_fn(SEED)
@@ -173,41 +174,42 @@ def measure_effective_distance(n_per_class=5, n_noisy=1000):
         ratio = d_eff / d_expected
 
         results[name] = {
-            'dim': dim,
-            'sigma': sigma,
-            'd_expected': d_expected,
-            'd_eff': d_eff,
-            'ratio': ratio,
-            'n_anchors': len(X_base),
+            "dim": dim,
+            "sigma": sigma,
+            "d_expected": d_expected,
+            "d_eff": d_eff,
+            "ratio": ratio,
+            "n_anchors": len(X_base),
         }
 
     return results
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('--threshold', type=float, help='distance threshold on MNIST')
-    group.add_argument('--percentile', type=float, help='direct percentile (0-1)')
-    group.add_argument('--effective', action='store_true', help='measure effective distance after perturbation')
-    parser.add_argument('--n-per-class', type=int, default=5, help='samples per class for --effective')
-    parser.add_argument('--n-noisy', type=int, default=1000, help='noisy samples per anchor for --effective')
+    group.add_argument("--threshold", type=float, help="distance threshold on MNIST")
+    group.add_argument("--percentile", type=float, help="direct percentile (0-1)")
+    group.add_argument("--effective", action="store_true", help="measure effective distance after perturbation")
+    parser.add_argument("--n-per-class", type=int, default=5, help="samples per class for --effective")
+    parser.add_argument("--n-noisy", type=int, default=1000, help="noisy samples per anchor for --effective")
     args = parser.parse_args()
 
     if args.effective:
         res = measure_effective_distance(n_per_class=args.n_per_class, n_noisy=args.n_noisy)
         print(f"Effective distance measurement (N={args.n_per_class}/class, {args.n_noisy} noisy samples)")
         print(f"{'dataset':<8} {'dim':>4} {'sigma':>6} {'d_exp':>7} {'d_eff':>7} {'ratio':>6}")
-        for name in ['mnist', 'fmnist', 'har', 'blobs']:
+        for name in ["mnist", "fmnist", "har", "blobs"]:
             r = res[name]
-            print(f"{name:<8} {r['dim']:>4} {r['sigma']:>6.4f} {r['d_expected']:>7.4f} {r['d_eff']:>7.4f} {r['ratio']:>6.3f}")
+            print(
+                f"{name:<8} {r['dim']:>4} {r['sigma']:>6.4f} "
+                f"{r['d_expected']:>7.4f} {r['d_eff']:>7.4f} {r['ratio']:>6.3f}"
+            )
     else:
-        res = compute_percentile_calibration(
-            threshold=args.threshold,
-            percentile=args.percentile
-        )
+        res = compute_percentile_calibration(threshold=args.threshold, percentile=args.percentile)
         print(f"Calibrated percentile p: {res['percentile']:.6f}")
-        for name in ['mnist', 'fmnist', 'har', 'blobs']:
+        for name in ["mnist", "fmnist", "har", "blobs"]:
             r = res[name]
             print(f"{name}: distance={r['distance']:.4f}, dim={r['dim']}, sigma={r['sigma']:.4f}")

@@ -1,11 +1,9 @@
-import joblib
-import numpy as np
 import os
 import time
-from sklearn.manifold import TSNE
 
-from plotting.scatter_plot import ScatterPlot
-from utils import labels_to_clusters
+import joblib
+import numpy as np
+from sklearn.manifold import TSNE
 
 
 def tsne_setup(X_tr, y_tr, X_val, X_te, seed, path_prefix):
@@ -16,9 +14,7 @@ def tsne_setup(X_tr, y_tr, X_val, X_te, seed, path_prefix):
     fit_time is None if loaded from cache.
     """
     path = f"{path_prefix}.joblib"
-    reducer, Z_tr, Z_val, Z_te, fit_time = load_or_fit_tsne_splits(
-        X_tr, y_tr, X_val, X_te, tsne_path=path, seed=seed
-    )
+    reducer, Z_tr, Z_val, Z_te, fit_time = load_or_fit_tsne_splits(X_tr, y_tr, X_val, X_te, tsne_path=path, seed=seed)
     return reducer, Z_tr, Z_val, Z_te, False, fit_time
 
 
@@ -89,5 +85,3 @@ def load_or_fit_tsne_splits(
         tsne_path,
     )
     return reducer, Z_train, Z_val, Z_te, fit_time
-
-

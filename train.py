@@ -10,10 +10,7 @@ from typedefs import TrainData, TrainingConfig, TrainingResult
 
 def create_loader(X, Z, batch_size, shuffle=True):
     """Create DataLoader from numpy arrays."""
-    return DataLoader(
-        TensorDataset(torch.from_numpy(X), torch.from_numpy(Z)),
-        batch_size=batch_size, shuffle=shuffle
-    )
+    return DataLoader(TensorDataset(torch.from_numpy(X), torch.from_numpy(Z)), batch_size=batch_size, shuffle=shuffle)
 
 
 def train_epoch(model, loader, optimizer, loss_fn, device, use_jacobian=False, lambda_jac=1.0):
@@ -36,7 +33,7 @@ def train_epoch(model, loader, optimizer, loss_fn, device, use_jacobian=False, l
             loss_jac = 0
             for j in range(2):
                 g = torch.autograd.grad(pred[:, j].sum(), xb, create_graph=True)[0]
-                loss_jac += (g ** 2).mean()
+                loss_jac += (g**2).mean()
             loss = loss_fit + lambda_jac * loss_jac
         else:
             loss = loss_fit
@@ -64,8 +61,9 @@ def validate_epoch(model, loader, loss_fn, device):
     return total_loss / n_samples
 
 
-def train_projection_model(model, train_data: TrainData, device, cfg: TrainingConfig,
-                           use_jacobian=False, lambda_jac=0.0):
+def train_projection_model(
+    model, train_data: TrainData, device, cfg: TrainingConfig, use_jacobian=False, lambda_jac=0.0
+):
     """Train model with early stopping. Returns TrainingResult namedtuple."""
     start_time = time.time()
 
@@ -80,8 +78,7 @@ def train_projection_model(model, train_data: TrainData, device, cfg: TrainingCo
     train_loss = 0.0
 
     for epoch in range(1, cfg.max_epochs + 1):
-        train_loss = train_epoch(model, train_loader, optimizer, loss_fn, device,
-                                 use_jacobian, lambda_jac)
+        train_loss = train_epoch(model, train_loader, optimizer, loss_fn, device, use_jacobian, lambda_jac)
         val_loss = validate_epoch(model, val_loader, loss_fn, device)
 
         print(f"Epoch {epoch:03d} | Train MSE {train_loss:.6f} | Val MSE {val_loss:.6f}")
@@ -103,7 +100,7 @@ def train_projection_model(model, train_data: TrainData, device, cfg: TrainingCo
         final_train_loss=train_loss,
         epochs=epoch,
         early_stopped=(patience_ctr >= cfg.patience),
-        training_time=training_time
+        training_time=training_time,
     )
 
 

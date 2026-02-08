@@ -1,11 +1,15 @@
 """Quick smoke test - runs one dataset, one projection, one model."""
+
 from dataset_loaders import load_mnist_split
 from main import (
-    run_experiment, write_results_csv,
-    DatasetConfig, ProjectionConfig, ModelConfig,
+    DatasetConfig,
+    ModelConfig,
+    ProjectionConfig,
+    run_experiment,
+    write_results_csv,
 )
-from typedefs import OutputDirs, TrainingConfig
 from projection_utils import umap_setup
+from typedefs import OutputDirs, TrainingConfig
 
 # Minimal configuration
 TEST_DATASETS = [

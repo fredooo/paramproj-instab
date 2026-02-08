@@ -1,4 +1,5 @@
 """Scatter plot visualization for cluster points."""
+
 import numpy as np
 
 from plotting.base_2d_plot import Base2DPlot

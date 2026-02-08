@@ -1,8 +1,10 @@
 """Anchor line plot showing displacement from anchor to perturbed points."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 from plotting.base_2d_plot import Base2DPlot
+
 
 class AnchorLinePlot(Base2DPlot):
     """Lines from perturbed points to their corresponding anchor."""
@@ -57,7 +59,8 @@ class AnchorLinePlot(Base2DPlot):
 
             if self.show_points:
                 self.ax.scatter(
-                    Z_sel[:, 0], Z_sel[:, 1],
+                    Z_sel[:, 0],
+                    Z_sel[:, 1],
                     c=[self.colors[i]],
                     s=self.point_size,
                     alpha=self.point_alpha,
@@ -67,7 +70,8 @@ class AnchorLinePlot(Base2DPlot):
 
             for z in Z_sel:
                 self.ax.plot(
-                    [z[0], anchor[0]], [z[1], anchor[1]],
+                    [z[0], anchor[0]],
+                    [z[1], anchor[1]],
                     color=self.colors[i],
                     linewidth=self.line_lw,
                     zorder=2,
@@ -82,7 +86,8 @@ class AnchorLinePlot(Base2DPlot):
             dists = np.linalg.norm(Z - anchor, axis=1)
             mean_disp = np.mean(dists)
             circle = plt.Circle(
-                anchor, mean_disp,
+                anchor,
+                mean_disp,
                 fill=False,
                 color=self.colors[i],
                 alpha=0.3,

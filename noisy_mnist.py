@@ -1,6 +1,7 @@
 """Visualize MNIST digits under varying Gaussian noise levels."""
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from torchvision import datasets, transforms
 
 from utils import centroid_representative_indices
@@ -21,7 +22,8 @@ def main():
 
     # Grid: rows = noise levels, cols = sigma label + 10 digits
     fig, axs = plt.subplots(
-        len(sigmas), 11,
+        len(sigmas),
+        11,
         figsize=(12, 1.0 * len(sigmas)),
         gridspec_kw={"width_ratios": [0.8] + [1] * 10, "wspace": -0.55, "hspace": 0.05},
     )

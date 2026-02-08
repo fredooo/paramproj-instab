@@ -1,4 +1,5 @@
 """Convenience function to render all plot types."""
+
 from plotting.anchor_line_plot import AnchorLinePlot
 from plotting.kde_contour_plot import KDEContourPlot
 from plotting.local_pca_plot import LocalPCAPlot

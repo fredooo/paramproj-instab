@@ -1,4 +1,5 @@
 """Neural network models for parametric projection."""
+
 import numpy as np
 import torch
 from torch import nn
@@ -44,7 +45,7 @@ def predict(model, X, batch_size=2048, device="cpu"):
     model.eval()
     out = []
     for i in range(0, len(X), batch_size):
-        xb = torch.from_numpy(X[i:i + batch_size]).to(device)
+        xb = torch.from_numpy(X[i : i + batch_size]).to(device)
         out.append(model(xb).cpu().numpy())
     return np.vstack(out)
 

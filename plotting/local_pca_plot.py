@@ -1,4 +1,5 @@
 """Local PCA ellipse plot for variance visualization."""
+
 import numpy as np
 from matplotlib.patches import Ellipse
 
@@ -116,7 +117,7 @@ class LocalPCAPlot(Base2DPlot):
             # Ellipse axes lengths for n_std "sigma" contour
             # For a Gaussian, sqrt(eigval) is std along that principal direction.
             width = 2.0 * self.n_std * np.sqrt(eigvals[0])  # major axis length
-            height = 2.0 * self.n_std * np.sqrt(eigvals[1]) # minor axis length
+            height = 2.0 * self.n_std * np.sqrt(eigvals[1])  # minor axis length
 
             # Angle in degrees: eigenvector of largest eigenvalue
             v0 = eigvecs[:, 0]

@@ -1,8 +1,8 @@
-import joblib
 import os
 import time
 import warnings
 
+import joblib
 import umap
 
 # Suppress UMAP warning about n_jobs override when using random_state

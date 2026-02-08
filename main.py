@@ -6,14 +6,30 @@ import numpy as np
 import torch
 from scipy.spatial.distance import pdist, squareform
 
-from typedefs import DataSplit, ProjectionContext, DatasetConfig, ProjectionConfig, ModelConfig, TrainData, OutputDirs, RunContext, TrainingConfig
 from dataset_loaders import load_blobs_split, load_fmnist_split, load_har_split, load_mnist_split
-from measures import compute_stability_metrics, create_noisy_versions, metric_trustworthiness_numba, metric_continuity_numba, trustworthiness_continuity_powers_of_two
-from models import predict, create_model, get_model_prefix
+from measures import (
+    compute_stability_metrics,
+    create_noisy_versions,
+    metric_continuity_numba,
+    metric_trustworthiness_numba,
+    trustworthiness_continuity_powers_of_two,
+)
+from models import create_model, get_model_prefix, predict
 from plotting.plot_all import plot_all
 from projection_utils import tsne_setup, umap_setup
-from train import train_projection_model, evaluate_projection_model
-from utils import set_seed, centroid_representative_indices, plot_projection_data
+from train import evaluate_projection_model, train_projection_model
+from typedefs import (
+    DatasetConfig,
+    DataSplit,
+    ModelConfig,
+    OutputDirs,
+    ProjectionConfig,
+    ProjectionContext,
+    RunContext,
+    TrainData,
+    TrainingConfig,
+)
+from utils import centroid_representative_indices, plot_projection_data, set_seed
 
 SEED = 777
 N_RUNS = 10
@@ -46,22 +62,16 @@ PROJECTIONS = [
 MODELS = [
     ModelConfig(False, 512, 3, False, 0.0),
     ModelConfig(True, 512, 3, False, 0.0),
-    
     ModelConfig(False, 512, 3, True, 1.0),
     ModelConfig(True, 512, 3, True, 1.0),
-    
     ModelConfig(False, 512, 3, True, 10.0),
     ModelConfig(True, 512, 3, True, 10.0),
-    
     ModelConfig(False, 512, 3, True, 20.0),
     ModelConfig(True, 512, 3, True, 20.0),
-    
     ModelConfig(False, 512, 3, True, 40.0),
     ModelConfig(True, 512, 3, True, 40.0),
-    
     ModelConfig(False, 512, 3, True, 80.0),
     ModelConfig(True, 512, 3, True, 80.0),
-
     ModelConfig(False, 1024, 6, False, 0.0),
 ]
 
@@ -82,7 +92,7 @@ def compute_quality_metrics(D_high, Z_low, k=7):
     -------
     dict with trust_p2, cont_p2 (aggregated powers-of-two), trust, cont (k=7).
     """
-    D_low = squareform(pdist(Z_low, metric='euclidean'))
+    D_low = squareform(pdist(Z_low, metric="euclidean"))
 
     # Aggregated powers-of-two metrics
     ks, trust_array, cont_array = trustworthiness_continuity_powers_of_two(D_high, D_low)
@@ -113,7 +123,10 @@ def compute_nn_metrics(model, proj_ctx, device):
 
     Returns (metrics, Z_clusters, Z_base, inference_time).
     """
-    project_fn = lambda X: predict(model, X, device=device)
+
+    def project_fn(X):
+        return predict(model, X, device=device)
+
     Z_base = project_fn(proj_ctx.X_base)
     start = time.time()
     Z_clusters = [project_fn(Xn) for Xn in proj_ctx.X_noisy_per_class]
@@ -169,9 +182,13 @@ def evaluate_projection(run_ctx, data, D_high_te, output_dirs):
     # Build projection context for NN evaluation
     proj_ctx = ProjectionContext(
         reducer=reducer,
-        Z_tr=Z_tr, Z_val=Z_val, Z_te=Z_te,
+        Z_tr=Z_tr,
+        Z_val=Z_val,
+        Z_te=Z_te,
         supports_transform=supports_transform,
-        X_base=X_base, Z_base=Z_base, X_noisy_per_class=X_noisy_per_class
+        X_base=X_base,
+        Z_base=Z_base,
+        X_noisy_per_class=X_noisy_per_class,
     )
 
     # Only compute stability metrics and generate plots if projection supports transform
@@ -205,8 +222,7 @@ def load_or_train_model(model_cfg, run_ctx, train_data, training_cfg, device, mo
     """Load cached model or train and save."""
     prefix = get_model_prefix(model_cfg)
     base_path = os.path.join(
-        models_dir,
-        f"{prefix}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}"
+        models_dir, f"{prefix}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}"
     )
     model_path = f"{base_path}.pt"
     metrics_path = f"{base_path}.csv"
@@ -224,40 +240,40 @@ def load_or_train_model(model_cfg, run_ctx, train_data, training_cfg, device, mo
             training_time = float(row["training_time"])
     else:
         result = train_projection_model(
-            model, train_data, device, training_cfg,
-            use_jacobian=model_cfg.use_jac, lambda_jac=model_cfg.lambda_jac
+            model, train_data, device, training_cfg, use_jacobian=model_cfg.use_jac, lambda_jac=model_cfg.lambda_jac
         )
         model = result.model
         training_time = result.training_time
         torch.save(model.state_dict(), model_path)
 
         with open(metrics_path, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=[
-                "best_val_loss", "final_train_loss", "epochs", "early_stopped", "training_time"
-            ])
+            w = csv.DictWriter(
+                f, fieldnames=["best_val_loss", "final_train_loss", "epochs", "early_stopped", "training_time"]
+            )
             w.writeheader()
-            w.writerow({
-                "best_val_loss": result.best_val_loss,
-                "final_train_loss": result.final_train_loss,
-                "epochs": result.epochs,
-                "early_stopped": result.early_stopped,
-                "training_time": result.training_time,
-            })
+            w.writerow(
+                {
+                    "best_val_loss": result.best_val_loss,
+                    "final_train_loss": result.final_train_loss,
+                    "epochs": result.epochs,
+                    "early_stopped": result.early_stopped,
+                    "training_time": result.training_time,
+                }
+            )
 
-        print(f"        Saved model: {model_path} "
-              f"(epochs={result.epochs}, val_loss={result.best_val_loss:.6f}, "
-              f"time={result.training_time:.1f}s)")
+        print(
+            f"        Saved model: {model_path} "
+            f"(epochs={result.epochs}, val_loss={result.best_val_loss:.6f}, "
+            f"time={result.training_time:.1f}s)"
+        )
 
     return model, training_time
 
 
-def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te,
-                      training_cfg, device, output_dirs):
+def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te, training_cfg, device, output_dirs):
     """Evaluate an NN model for one (dataset, projection, model, seed) configuration."""
     train_data = TrainData(data.X_tr, proj_ctx.Z_tr, data.X_val, proj_ctx.Z_val)
-    model, fit_time = load_or_train_model(
-        model_cfg, run_ctx, train_data, training_cfg, device, output_dirs.models
-    )
+    model, fit_time = load_or_train_model(model_cfg, run_ctx, train_data, training_cfg, device, output_dirs.models)
     test_loss = evaluate_projection_model(model, data.X_te, proj_ctx.Z_te, device=device)
 
     # Compute NN quality metrics (trustworthiness & continuity on clean test data)
@@ -268,11 +284,17 @@ def evaluate_nn_model(run_ctx, model_cfg, data, proj_ctx, D_high_te,
     nn_stability, Z_clusters_nn, Z_base_nn, inference_time = compute_nn_metrics(model, proj_ctx, device)
 
     # Plot NN test predictions with anchors
-    test_img = os.path.join(output_dirs.images, f"{get_model_prefix(model_cfg)}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}_test.png")
+    test_img = os.path.join(
+        output_dirs.images,
+        f"{get_model_prefix(model_cfg)}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}_test.png",
+    )
     plot_projection_data(Z_te_nn, data.y_te, test_img, anchors=Z_base_nn)
 
     # Generate plots for NN model
-    img_prefix = os.path.join(output_dirs.images, f"{get_model_prefix(model_cfg)}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}")
+    img_prefix = os.path.join(
+        output_dirs.images,
+        f"{get_model_prefix(model_cfg)}_{run_ctx.projection_cfg.name}_{run_ctx.dataset_cfg.name}_{run_ctx.seed}",
+    )
     plot_all(Z_clusters_nn, Z_base_nn, img_prefix)
 
     # Build result row
@@ -300,10 +322,20 @@ def write_results_csv(rows_by_prefix, results_dir):
     os.makedirs(results_dir, exist_ok=True)
 
     fieldnames = [
-        "dataset", "projection", "run_id", "run", "test_loss",
-        "trust_p2", "cont_p2", "trust", "cont",
-        "fit_time", "inference_time",
-        "D_dev", "D_bias", "E_NA",
+        "dataset",
+        "projection",
+        "run_id",
+        "run",
+        "test_loss",
+        "trust_p2",
+        "cont_p2",
+        "trust",
+        "cont",
+        "fit_time",
+        "inference_time",
+        "D_dev",
+        "D_bias",
+        "E_NA",
     ]
 
     for prefix, rows in rows_by_prefix.items():
@@ -319,8 +351,7 @@ def write_results_csv(rows_by_prefix, results_dir):
         print(f"Wrote {path} ({len(rows)} rows)")
 
 
-def run_experiment(datasets, projections, models, seeds, training_cfg,
-                   output_dirs=OUTPUT_DIRS, device=DEVICE):
+def run_experiment(datasets, projections, models, seeds, training_cfg, output_dirs=OUTPUT_DIRS, device=DEVICE):
     """Run experiment with given configuration. Returns rows_by_prefix dict."""
     os.makedirs(output_dirs.models, exist_ok=True)
     os.makedirs(output_dirs.images, exist_ok=True)
@@ -340,16 +371,14 @@ def run_experiment(datasets, projections, models, seeds, training_cfg,
 
             # Precompute high-dimensional distance matrix (reused across projections/models)
             print(f"  Computing distance matrix for {dataset_cfg.name}...")
-            D_high_te = squareform(pdist(data.X_te, metric='euclidean'))
+            D_high_te = squareform(pdist(data.X_te, metric="euclidean"))
 
             for projection_cfg in projections:
                 print(f"    Evaluating projection: {projection_cfg.name}")
                 run_ctx = RunContext(dataset_cfg, projection_cfg, seed)
 
                 # Evaluate projection (returns None for row if not supports_transform)
-                proj_row, proj_ctx = evaluate_projection(
-                    run_ctx, data, D_high_te, output_dirs
-                )
+                proj_row, proj_ctx = evaluate_projection(run_ctx, data, D_high_te, output_dirs)
 
                 # Store projection results if available
                 if proj_row is not None:
@@ -360,8 +389,7 @@ def run_experiment(datasets, projections, models, seeds, training_cfg,
                 for model_cfg in models:
                     print(f"      Evaluating model: {get_model_prefix(model_cfg)}")
                     nn_row = evaluate_nn_model(
-                        run_ctx, model_cfg, data, proj_ctx, D_high_te,
-                        training_cfg, device, output_dirs
+                        run_ctx, model_cfg, data, proj_ctx, D_high_te, training_cfg, device, output_dirs
                     )
                     nn_row["run_id"] = run_id
                     rows_by_prefix[get_model_prefix(model_cfg)].append(nn_row)

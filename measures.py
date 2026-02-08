@@ -1,10 +1,10 @@
 import numba
 import numpy as np
 
-
 # =============================================================================
 # Stability Metrics (for perturbation analysis)
 # =============================================================================
+
 
 def D_dev(Z, z0):
     """Typical displacement (noise-induced drift).
@@ -58,7 +58,6 @@ def E_NA(Z_clusters, Z_base):
     float
         Misassignment rate in [0, 1].
     """
-    C = len(Z_base)
     misassign_rates = []
     for c, Z_c in enumerate(Z_clusters):
         # Distances from each noisy point to all anchors: (N, C)
@@ -102,9 +101,11 @@ def compute_stability_metrics(Z_base, Z_clusters):
         "E_NA": E_NA(Z_clusters, Z_base),
     }
 
+
 # =============================================================================
 # Projection Quality Metrics (trustworthiness & continuity)
 # =============================================================================
+
 
 @numba.njit(parallel=False)
 def argsort_rows(X):

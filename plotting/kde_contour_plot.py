@@ -1,4 +1,5 @@
 """KDE contour plot for density visualization."""
+
 import numpy as np
 from scipy.stats import gaussian_kde
 
@@ -44,11 +45,7 @@ class KDEContourPlot(Base2DPlot):
         ]
         grid = np.vstack([xx.ravel(), yy.ravel()])
 
-        cell_area = (
-            (self.xlim[1] - self.xlim[0])
-            * (self.ylim[1] - self.ylim[0])
-            / grid.shape[1]
-        )
+        cell_area = (self.xlim[1] - self.xlim[0]) * (self.ylim[1] - self.ylim[0]) / grid.shape[1]
 
         for i, Z in enumerate(self.Z_clusters):
             if len(Z) < 10:
@@ -83,7 +80,6 @@ class KDEContourPlot(Base2DPlot):
                 linewidths=self.contour_lw,
                 zorder=2,
             )
-
 
     def render(self):
         self.plot_contours()

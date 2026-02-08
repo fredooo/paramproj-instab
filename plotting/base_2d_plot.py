@@ -1,6 +1,7 @@
 """Base class for 2D projection plots."""
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.cm import get_cmap
 
 
@@ -62,14 +63,14 @@ class Base2DPlot:
 
         return xlim, ylim
 
-
     def plot_points(self, size=8, alpha=0.05):
         """Draw scatter points for each cluster."""
         for i, Z in enumerate(self.Z_clusters):
             if len(Z) == 0:
                 continue
             self.ax.scatter(
-                Z[:, 0], Z[:, 1],
+                Z[:, 0],
+                Z[:, 1],
                 c=[self.colors[i]],
                 s=size,
                 alpha=alpha,
@@ -81,7 +82,8 @@ class Base2DPlot:
         """Draw anchor points with distinctive markers."""
         for i, anchor in enumerate(self.anchors):
             self.ax.scatter(
-                anchor[0], anchor[1],
+                anchor[0],
+                anchor[1],
                 c=[self.colors[i]],
                 marker=marker,
                 s=size,

@@ -1,5 +1,6 @@
-import numpy as np
 import random
+
+import numpy as np
 import torch
 
 from plotting.scatter_plot import ScatterPlot
@@ -22,7 +23,7 @@ def centroid_representative_indices(Z, y):
     """For each class, return the index of the sample closest to the class centroid in Z."""
     base_idxs = []
     for c in np.unique(y):
-        class_mask = (y == c)
+        class_mask = y == c
         Z_c = Z[class_mask]
         centroid = Z_c.mean(axis=0, keepdims=True)
         dists = np.linalg.norm(Z_c - centroid, axis=1)
@@ -42,7 +43,7 @@ def labels_to_clusters(Z, y):
 
 def plot_projection_data(Z_data, y_data, filename, anchors=None):
     Z_clusters = labels_to_clusters(Z_data, y_data)
-    plot = ScatterPlot(
+    ScatterPlot(
         Z_clusters=Z_clusters,
         anchors=anchors,
         point_size=2,
