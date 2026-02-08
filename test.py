@@ -18,6 +18,7 @@ TEST_PROJECTIONS = [
 
 TEST_MODELS = [
     ModelConfig(False, 256, 2, False, 0.0),
+    ModelConfig(False, 256, 2, True, 10.0),
 ]
 
 TEST_TRAINING_CONFIG = TrainingConfig(
