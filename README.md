@@ -8,9 +8,9 @@
 
 ## Key Features
 
-* Compares parametric projection methods (neural networks) against non-parametric baselines (UMAP, t-SNE) for dimensionality reduction.
+* Compares parametric projection methods (neural networks) against non-parametric baselines (UMAP [1], t-SNE [2]) for dimensionality reduction.
 * Measures projection stability under Gaussian input perturbations using novel metrics ($D_{\text{dev}}$, $D_{\text{bias}}$, $E_{\text{NA}}$).
-* Evaluates projection quality via trustworthiness and continuity metrics.
+* Evaluates projection quality via trustworthiness and continuity [3] metrics.
 * Includes MLP and spectrally-normalized MLP (SpecMLP) architectures with optional Jacobian regularization.
 * Provides multiple visualization types: scatter plots, KDE contours, local PCA ellipses, anchor lines, and Voronoi tessellations.
 
@@ -43,7 +43,7 @@ python3 main.py
 
 This will:
 - Load datasets (MNIST, FashionMNIST, Blobs, HAR)
-- Fit UMAP and t-SNE projections
+- Fit UMAP [1] and t-SNE [2] projections
 - Train neural network models to mimic projections
 - Compute stability and quality metrics
 - Generate visualization outputs
@@ -67,7 +67,7 @@ python3 test.py
 | `utils.py`          | Utility functions (seeding, centroid selection, plotting).                  |
 | `test.py`           | Smoke test for verifying installation.                                      |
 | `dataset_loaders/`  | Dataset loading functions for MNIST, FashionMNIST, HAR, Blobs.              |
-| `projection_utils/` | UMAP and t-SNE setup utilities.                                             |
+| `projection_utils/` | UMAP [1] and t-SNE [2] setup utilities.                                             |
 | `plotting/`         | Visualization modules (scatter, KDE, PCA ellipses, Voronoi, anchor lines).  |
 
 ## Metrics
@@ -84,8 +84,16 @@ Given anchor point $z_0$ and $N$ noisy projections $\{z_i\}_{i=1}^N$:
 
 ### Quality Metrics
 
-- **Trustworthiness**: Penalizes false neighbors (points close in low-dim but distant in high-dim)
-- **Continuity**: Penalizes missing neighbors (points close in high-dim but distant in low-dim)
+- **Trustworthiness** [3]: Penalizes false neighbors (points close in low-dim but distant in high-dim)
+- **Continuity** [3]: Penalizes missing neighbors (points close in high-dim but distant in low-dim)
+
+## References
+
+[1] McInnes, L., Healy, J., & Melville, J. (2018). UMAP: Uniform Manifold Approximation and Projection for Dimension Reduction. *arXiv:1802.03426*.
+
+[2] van der Maaten, L., & Hinton, G. (2008). Visualizing Data using t-SNE. *Journal of Machine Learning Research*, 9(86), 2579–2605.
+
+[3] Venna, J., & Kaski, S. (2001). Neighborhood Preservation in Nonlinear Projection Methods: An Experimental Study. *30th International Conference on Artificial Neural Networks*, 485–491.
 
 ## License
 
