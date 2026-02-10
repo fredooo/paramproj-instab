@@ -25,10 +25,10 @@ DATASET_LABELS = {
 
 # Metrics for each section
 SECTIONS = [
-    ("Average Loss (lower is better)", "test_loss"),
-    ("Average Trustworthiness $T(k)$ with $k \\in \\{2, 4, 8, \\dots, n / 2\\}$ (higher is better)", "trust_p2"),
-    ("Average Continuity $C(k)$ with $k \\in \\{2, 4, 8, \\dots, n / 2\\}$ (higher is better)", "cont_p2"),
-    ("Average Displacement (lower is better)", "D_dev"),
+    ("Average MSE Loss (lower is better)", "test_loss"),
+    ("Avg. Trustworthiness $T(k)$ with $k \\in \\{2, 4, 8, \\dots, n / 2\\}$ (higher is better)", "trust_p2"),
+    ("Avg. Continuity $C(k)$ with $k \\in \\{2, 4, 8, \\dots, n / 2\\}$ (higher is better)", "cont_p2"),
+    ("Mean Displacement (lower is better)", "D_dev"),
     ("Displacement Bias (lower is better)", "D_bias"),
     ("Average Anchor Assignment Error (lower is better)", "E_NA"),
 ]
@@ -89,6 +89,7 @@ def generate_latex_table(aggregated):
     # lines.append(r'\hline')
     lines.append(r"\textbf{Model} & \textbf{Blobs} & \textbf{HAR} & \textbf{MNIST} & \textbf{Fashion-MNIST} \\")
     lines.append(r"\hline")
+    lines.append(r"\hline")
     for section_idx, (section_name, metric_col) in enumerate(SECTIONS):
         if section_idx > 0:
             lines.append(r"\hline")
@@ -145,7 +146,7 @@ def generate_latex_table(aggregated):
     lines.append(r"\end{tabular}")
     lines.append(
         r"\caption{Stability and quality metrics for MLP-based parametric projections "
-        r"nased on UMAP with different regularization strategies across datasets. "
+        r"based on UMAP with different regularization strategies across datasets. "
         r"Bold values indicate best performance per metric and dataset.}"
     )
     lines.append(r"\label{tab:comparison}")
