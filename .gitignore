@@ -6,7 +6,8 @@ datasets/FashionMNIST/
 datasets/MNIST/
 
 # Experiment outputs
-output/
+output/images/
+output/models/
 test_output/
 
 # Python bytecode
