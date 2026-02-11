@@ -8,7 +8,6 @@ from plotting.base_2d_plot import Base2DPlot
 
 class AnchorLinePlot(Base2DPlot):
     """Lines from perturbed points to their corresponding anchor."""
-
     def __init__(
         self,
         Z_clusters,
@@ -18,7 +17,7 @@ class AnchorLinePlot(Base2DPlot):
         pad=0.1,
         show_points=False,
         point_size=8,
-        point_alpha=1.0,
+        point_alpha=0.5,
         max_lines=100,
         line_lw=0.8,
         figsize=(6, 6),
@@ -90,7 +89,7 @@ class AnchorLinePlot(Base2DPlot):
                 mean_disp,
                 fill=False,
                 color=self.colors[i],
-                alpha=0.3,
+                alpha=0.5,
                 linewidth=1.0,
                 zorder=3,
             )

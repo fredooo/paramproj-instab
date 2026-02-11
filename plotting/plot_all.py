@@ -27,8 +27,6 @@ def plot_all(Z_clusters, anchors, filename_prefix):
         Z_clusters=Z_clusters,
         anchors=anchors,
         show_points=True,
-        point_alpha=0.4,
-        line_lw=0.5,
         filename=f"{filename_prefix}_anchor_lines.png",
     ).render()
 

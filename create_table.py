@@ -30,7 +30,7 @@ SECTIONS = [
     ("Avg. Continuity $C(k)$ with $k \\in \\{2, 4, 8, \\dots, n / 2\\}$ (higher is better)", "cont_p2"),
     ("Mean Displacement (lower is better)", "D_dev"),
     ("Displacement Bias (lower is better)", "D_bias"),
-    ("Average Anchor Assignment Error (lower is better)", "E_NA"),
+    ("Average Nearest-Anchor Assignment Error (lower is better)", "E_NA"),
 ]
 
 
@@ -87,7 +87,7 @@ def generate_latex_table(aggregated):
     lines.append(r"\centering")
     lines.append(r"\begin{tabular}{lcccc}")
     # lines.append(r'\hline')
-    lines.append(r"\textbf{Model} & \textbf{Blobs} & \textbf{HAR} & \textbf{MNIST} & \textbf{Fashion-MNIST} \\")
+    lines.append(r"\textbf{Model} & \textbf{Blobs} & \textbf{HAR} & \textbf{MNIST} & \textbf{Fashion} \\")
     lines.append(r"\hline")
     lines.append(r"\hline")
     for section_idx, (section_name, metric_col) in enumerate(SECTIONS):
