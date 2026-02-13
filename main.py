@@ -59,20 +59,26 @@ PROJECTIONS = [
 ]
 
 # use_spec (False=MLP, True=SpecMLP), hidden_dim, n_hidden, use_jac, lambda_jac
-MODELS = [
-    ModelConfig(False, 512, 3, False, 0.0),
-    ModelConfig(True, 512, 3, False, 0.0),
-    ModelConfig(False, 512, 3, True, 1.0),
-    ModelConfig(True, 512, 3, True, 1.0),
-    ModelConfig(False, 512, 3, True, 10.0),
-    ModelConfig(True, 512, 3, True, 10.0),
-    ModelConfig(False, 512, 3, True, 20.0),
-    ModelConfig(True, 512, 3, True, 20.0),
-    ModelConfig(False, 512, 3, True, 40.0),
-    ModelConfig(True, 512, 3, True, 40.0),
-    ModelConfig(False, 512, 3, True, 80.0),
-    ModelConfig(True, 512, 3, True, 80.0),
-    ModelConfig(False, 1024, 6, False, 0.0),
+#MODELS = [
+#    ModelConfig(False, 512, 3, False, 0.0),
+#    ModelConfig(True, 512, 3, False, 0.0),
+#    ModelConfig(False, 512, 3, True, 1.0),
+#    ModelConfig(True, 512, 3, True, 1.0),
+#    ModelConfig(False, 512, 3, True, 10.0),
+#    ModelConfig(True, 512, 3, True, 10.0),
+#    ModelConfig(False, 512, 3, True, 20.0),
+#    ModelConfig(True, 512, 3, True, 20.0),
+#    ModelConfig(False, 512, 3, True, 40.0),
+#    ModelConfig(True, 512, 3, True, 40.0),
+#    ModelConfig(False, 512, 3, True, 80.0),
+#    ModelConfig(True, 512, 3, True, 80.0),
+#    ModelConfig(False, 1024, 6, False, 0.0),
+#]
+MODEL = [
+    ModelConfig(False, 1024, 6, True, 10.0),
+    ModelConfig(False, 1024, 6, True, 20.0),
+    ModelConfig(False, 1024, 6, True, 40.0),
+    ModelConfig(False, 1024, 6, True, 80.0),
 ]
 
 
