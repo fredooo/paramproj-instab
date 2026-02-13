@@ -74,7 +74,7 @@ PROJECTIONS = [
 #    ModelConfig(True, 512, 3, True, 80.0),
 #    ModelConfig(False, 1024, 6, False, 0.0),
 #]
-MODEL = [
+MODELS = [
     ModelConfig(False, 1024, 6, True, 10.0),
     ModelConfig(False, 1024, 6, True, 20.0),
     ModelConfig(False, 1024, 6, True, 40.0),
