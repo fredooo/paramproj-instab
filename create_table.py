@@ -6,12 +6,20 @@ from pathlib import Path
 import pandas as pd
 
 # Model → CSV file mapping
+# MODEL_FILES = {
+#    "MLP-small": "nn_MLP_h512_n3_nojac.csv",
+#    "MLP-large": "nn_MLP_h1024_n6_nojac.csv",
+#    "MLP-small+J": "nn_MLP_h512_n3_jac10.0.csv",
+#    "MLP-small+S": "nn_SpecMLP_h512_n3_nojac.csv",
+#    "MLP-small+JS": "nn_SpecMLP_h512_n3_jac10.0.csv",
+# }
+
+# Model → CSV file mapping
 MODEL_FILES = {
     "MLP-small": "nn_MLP_h512_n3_nojac.csv",
-    "MLP-large": "nn_MLP_h1024_n6_nojac.csv",
     "MLP-small+J": "nn_MLP_h512_n3_jac10.0.csv",
-    "MLP-small+S": "nn_SpecMLP_h512_n3_nojac.csv",
-    "MLP-small+JS": "nn_SpecMLP_h512_n3_jac10.0.csv",
+    "MLP-large": "nn_MLP_h1024_n6_nojac.csv",
+    "MLP-large+J": "nn_MLP_h1024_n6_jac10.0.csv",
 }
 
 # Dataset normalization
@@ -34,7 +42,7 @@ SECTIONS = [
 ]
 
 
-def format_value(mean, std, bold=False):
+def format_value(mean, std, bold=False, underline=False):
     """Format mean ± std, removing trailing zeros and leading zero."""
     if pd.isna(mean) or pd.isna(std):
         return "--"
@@ -48,7 +56,11 @@ def format_value(mean, std, bold=False):
         std_str = std_str[1:]
 
     result = f"{mean_str} $\\pm$ {std_str}"
-    return f"\\textbf{{{result}}}" if bold else result
+    if bold:
+        return f"\\textbf{{{result}}}"
+    if underline:
+        return f"\\underline{{{result}}}"
+    return result
 
 
 def load_and_aggregate():
@@ -99,27 +111,35 @@ def generate_latex_table(aggregated):
         # Determine optimization direction
         is_lower_better = "lower is better" in section_name.lower()
 
-        # Find best value for each dataset
+        # Find best and worst value for each dataset
         best_models = {}  # dataset -> model_name
+        worst_models = {}  # dataset -> model_name
         for dataset in DATASET_ORDER:
             best_val = None
             best_model = None
+            worst_val = None
+            worst_model = None
             for model_name in MODEL_FILES.keys():
                 stats = aggregated[model_name]
                 if dataset in stats.index:
                     mean = stats.loc[dataset, (metric_col, "mean")]
-                    # Skip UMAP test_loss or NaN values
                     if model_name == "UMAP" and metric_col == "test_loss":
                         continue
                     if pd.notna(mean):
                         if best_val is None:
-                            best_val = mean
-                            best_model = model_name
-                        elif (is_lower_better and mean < best_val) or (not is_lower_better and mean > best_val):
-                            best_val = mean
-                            best_model = model_name
+                            best_val = worst_val = mean
+                            best_model = worst_model = model_name
+                        else:
+                            if (is_lower_better and mean < best_val) or (not is_lower_better and mean > best_val):
+                                best_val = mean
+                                best_model = model_name
+                            if (is_lower_better and mean > worst_val) or (not is_lower_better and mean < worst_val):
+                                worst_val = mean
+                                worst_model = model_name
             if best_model:
                 best_models[dataset] = best_model
+            if worst_model:
+                worst_models[dataset] = worst_model
 
         for model_name in MODEL_FILES.keys():
             stats = aggregated[model_name]
@@ -133,9 +153,9 @@ def generate_latex_table(aggregated):
                     else:
                         mean = stats.loc[dataset, (metric_col, "mean")]
                         std = stats.loc[dataset, (metric_col, "std")]
-                        # Bold if this is the best model for this dataset
                         is_best = best_models.get(dataset) == model_name
-                        row_values.append(format_value(mean, std, bold=is_best))
+                        is_worst = worst_models.get(dataset) == model_name and not is_best
+                        row_values.append(format_value(mean, std, bold=is_best, underline=is_worst))
                 else:
                     row_values.append("--")
 
@@ -147,7 +167,7 @@ def generate_latex_table(aggregated):
     lines.append(
         r"\caption{Stability and quality metrics for MLP-based parametric projections "
         r"based on UMAP with different regularization strategies across datasets. "
-        r"Bold values indicate best performance per metric and dataset.}"
+        r"Bold values indicate best, underlined values worst performance per metric and dataset.}"
     )
     lines.append(r"\label{tab:comparison}")
     lines.append(r"\vspace{-1.5em}")
