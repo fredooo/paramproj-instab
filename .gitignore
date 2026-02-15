@@ -8,6 +8,11 @@ datasets/MNIST/
 # Experiment outputs
 output/images/
 output/models/
+
+output/images.zip
+output/models.zip
+output/results.zip
+
 test_output/
 
 # Python bytecode

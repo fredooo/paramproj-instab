@@ -2,19 +2,11 @@
 """Aggregate experimental results and populate LaTeX comparison table."""
 
 from pathlib import Path
-
 import pandas as pd
 
-# Model → CSV file mapping
-# MODEL_FILES = {
-#    "MLP-small": "nn_MLP_h512_n3_nojac.csv",
-#    "MLP-large": "nn_MLP_h1024_n6_nojac.csv",
-#    "MLP-small+J": "nn_MLP_h512_n3_jac10.0.csv",
-#    "MLP-small+S": "nn_SpecMLP_h512_n3_nojac.csv",
-#    "MLP-small+JS": "nn_SpecMLP_h512_n3_jac10.0.csv",
-# }
+RESULTS_DIR = Path(__file__).resolve().parent.parent / "output" / "results"
+OUTPUT_DIR = Path(__file__).resolve().parent
 
-# Model → CSV file mapping
 MODEL_FILES = {
     "MLP-small": "nn_MLP_h512_n3_nojac.csv",
     "MLP-small+J": "nn_MLP_h512_n3_jac10.0.csv",
@@ -65,14 +57,13 @@ def format_value(mean, std, bold=False, underline=False):
 
 def load_and_aggregate():
     """Load CSVs and compute mean ± std for each metric."""
-    results_dir = Path("./output/results")
     aggregated = {}
 
     # Columns to aggregate
     metric_cols = ["test_loss", "trust_p2", "cont_p2", "D_dev", "D_bias", "E_NA"]
 
     for model_name, csv_file in MODEL_FILES.items():
-        csv_path = results_dir / csv_file
+        csv_path = RESULTS_DIR / csv_file
         df = pd.read_csv(csv_path)
 
         # Filter for UMAP projection only
@@ -183,7 +174,7 @@ def main():
     print("Generating LaTeX table...")
     latex_table = generate_latex_table(aggregated)
 
-    output_file = Path("00-comparison-table.tex")
+    output_file = OUTPUT_DIR / "00-comparison-table.tex"
     output_file.write_text(latex_table)
     print(f"Created {output_file}")
 
