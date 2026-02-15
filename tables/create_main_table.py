@@ -2,6 +2,7 @@
 """Aggregate experimental results and populate LaTeX comparison table."""
 
 from pathlib import Path
+
 import pandas as pd
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "output" / "results"

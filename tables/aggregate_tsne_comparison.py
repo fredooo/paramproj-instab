@@ -2,6 +2,7 @@
 """Generate UMAP vs tSNE comparison table."""
 
 from pathlib import Path
+
 import pandas as pd
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "output" / "results"
@@ -44,13 +45,19 @@ def main():
     lines = []
     lines.append(r"\begin{table*}[ht]")
     lines.append(r"\centering")
-    lines.append(r"\caption{UMAP vs tSNE comparison across models and datasets (mean $\pm$ std, 10 runs). Stability improvements from Jacobian regularization are consistent across projection methods.}")
+    lines.append(
+        r"\caption{UMAP vs tSNE comparison across models and datasets (mean $\pm$ std, 10 runs). "
+        r"Stability improvements from Jacobian regularization are consistent across projection methods.}"
+    )
     lines.append(r"\label{tab:tsne-comparison}")
     lines.append(r"\small")
     lines.append(r"\setlength{\tabcolsep}{3pt}")
     lines.append(r"\begin{tabular}{@{}l cc cc cc cc@{}}")
     lines.append(r"\toprule")
-    lines.append(r"& \multicolumn{2}{c}{MLP-small} & \multicolumn{2}{c}{MLP-small+J} & \multicolumn{2}{c}{MLP-large} & \multicolumn{2}{c}{MLP-large+J} \\")
+    lines.append(
+        r"& \multicolumn{2}{c}{MLP-small} & \multicolumn{2}{c}{MLP-small+J} & "
+        r"\multicolumn{2}{c}{MLP-large} & \multicolumn{2}{c}{MLP-large+J} \\"
+    )
     lines.append(r"\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}")
     lines.append(r"Dataset & UMAP & tSNE & UMAP & tSNE & UMAP & tSNE & UMAP & tSNE \\")
     lines.append(r"\midrule")

@@ -62,22 +62,16 @@ PROJECTIONS = [
 MODELS = [
     ModelConfig(False, 512, 3, False, 0.0),
     ModelConfig(True, 512, 3, False, 0.0),
-    
     ModelConfig(False, 512, 3, True, 1.0),
     ModelConfig(True, 512, 3, True, 1.0),
-    
     ModelConfig(False, 512, 3, True, 10.0),
     ModelConfig(True, 512, 3, True, 10.0),
-    
     ModelConfig(False, 512, 3, True, 20.0),
     ModelConfig(True, 512, 3, True, 20.0),
-    
     ModelConfig(False, 512, 3, True, 40.0),
     ModelConfig(True, 512, 3, True, 40.0),
-    
     ModelConfig(False, 512, 3, True, 80.0),
     ModelConfig(True, 512, 3, True, 80.0),
-
     ModelConfig(False, 1024, 6, False, 0.0),
     ModelConfig(False, 1024, 6, True, 10.0),
     ModelConfig(False, 1024, 6, True, 20.0),

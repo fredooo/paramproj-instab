@@ -2,6 +2,7 @@
 """Generate lambda sensitivity tables for MLP-small, MLP-large, SpecMLP-small."""
 
 from pathlib import Path
+
 import pandas as pd
 
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "output" / "results"
@@ -27,21 +28,30 @@ CONFIGS = [
         "prefix": "nn_MLP_h512_n3",
         "lambdas": [0, 1, 10, 20, 40, 80],
         "label": "tab:lambda-sensitivity",
-        "caption": "Sensitivity to Jacobian regularization strength $\\lambda$ for MLP-small (512 hidden, 3 layers, UMAP, 10 runs). Best per dataset in \\textbf{bold}.",
+        "caption": (
+            "Sensitivity to Jacobian regularization strength $\\lambda$ for MLP-small "
+            "(512 hidden, 3 layers, UMAP, 10 runs). Best per dataset in \\textbf{bold}."
+        ),
     },
     {
         "name": "MLP-large",
         "prefix": "nn_MLP_h1024_n6",
         "lambdas": [0, 10, 20, 40, 80],
         "label": "tab:lambda-sensitivity-large",
-        "caption": "Sensitivity to $\\lambda$ for MLP-large (1024 hidden, 6 layers, UMAP, 10 runs). Best per dataset in \\textbf{bold}.",
+        "caption": (
+            "Sensitivity to $\\lambda$ for MLP-large (1024 hidden, 6 layers, UMAP, 10 runs). "
+            "Best per dataset in \\textbf{bold}."
+        ),
     },
     {
         "name": "SpecMLP-small",
         "prefix": "nn_SpecMLP_h512_n3",
         "lambdas": [0, 1, 10, 20, 40, 80],
         "label": "tab:lambda-sensitivity-spec",
-        "caption": "Sensitivity to $\\lambda$ for SpecMLP-small (512 hidden, 3 layers, spectral norm, UMAP, 10 runs). Best per dataset in \\textbf{bold}.",
+        "caption": (
+            "Sensitivity to $\\lambda$ for SpecMLP-small (512 hidden, 3 layers, spectral norm, UMAP, 10 runs). "
+            "Best per dataset in \\textbf{bold}."
+        ),
     },
 ]
 
@@ -57,7 +67,9 @@ def format_value(mean, std, bold=False):
         std_str = std_str[1:]
     result = f"${mean_str} \\pm {std_str}$"
     if bold:
-        return f"\\mathbf{{{mean_str} \\pm {std_str}}}".replace(result, "") or f"$\\mathbf{{{mean_str} \\pm {std_str}}}$"
+        return (
+            f"\\mathbf{{{mean_str} \\pm {std_str}}}".replace(result, "") or f"$\\mathbf{{{mean_str} \\pm {std_str}}}$"
+        )
     return result
 
 
@@ -87,7 +99,7 @@ def generate_table(config):
         data[lam] = df
 
     # Build table
-    col_headers = " & ".join([f"$\\lambda{{=}}{l}$" for l in lambdas])
+    col_headers = " & ".join([f"$\\lambda{{=}}{lambda_val}$" for lambda_val in lambdas])
     lines = []
     lines.append(r"\begin{table*}[ht]")
     lines.append(r"\centering")
@@ -130,7 +142,7 @@ def generate_table(config):
             cells = []
             for lam in lambdas:
                 if lam in means:
-                    is_best = (lam == best_lam)
+                    is_best = lam == best_lam
                     m, s = means[lam], stds[lam]
                     mean_str = f"{m:.3f}".rstrip("0").rstrip(".")
                     std_str = f"{s:.3f}".rstrip("0").rstrip(".")

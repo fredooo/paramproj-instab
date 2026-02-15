@@ -8,6 +8,7 @@ from plotting.base_2d_plot import Base2DPlot
 
 class AnchorLinePlot(Base2DPlot):
     """Lines from perturbed points to their corresponding anchor."""
+
     def __init__(
         self,
         Z_clusters,
