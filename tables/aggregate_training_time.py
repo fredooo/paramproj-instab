@@ -8,6 +8,9 @@ import pandas as pd
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "output" / "results"
 OUTPUT_DIR = Path(__file__).resolve().parent
 
+PROJECTION = "tsne"  # "umap" or "tsne"
+PROJECTION_LABEL = {"umap": "UMAP", "tsne": "t-SNE"}[PROJECTION]
+
 DATASETS = ["mnist", "fmnist", "blobs", "har"]
 DATASET_LABELS = {"mnist": "MNIST", "fmnist": "Fashion", "blobs": "Blobs", "har": "HAR"}
 
@@ -25,8 +28,6 @@ def main():
     lines = []
     lines.append(r"\begin{table}[ht]")
     lines.append(r"\centering")
-    lines.append(r"\caption{Training time in seconds (mean $\pm$ std, 10 runs, UMAP projection).}")
-    lines.append(r"\label{tab:training-time}")
     lines.append(r"\small")
     lines.append(r"\begin{tabular}{@{}l cccc@{}}")
     lines.append(r"\toprule")
@@ -35,7 +36,7 @@ def main():
 
     for model_name, csv_file in MODEL_FILES.items():
         df = pd.read_csv(RESULTS_DIR / csv_file)
-        df = df[df["projection"] == "umap"]
+        df = df[df["projection"] == PROJECTION]
 
         cells = []
         for ds in DATASETS:
@@ -51,6 +52,8 @@ def main():
 
     lines.append(r"\bottomrule")
     lines.append(r"\end{tabular}")
+    lines.append(f"\\caption{{Training time in seconds (mean $\\pm$ std, 10 runs, {PROJECTION_LABEL} projection).}}")
+    lines.append(r"\label{tab:training-time}")
     lines.append(r"\end{table}")
 
     output_file = OUTPUT_DIR / "00-training-time-table.tex"

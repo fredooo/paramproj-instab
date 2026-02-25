@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate lambda sensitivity tables for MLP-small, MLP-large, SpecMLP-small."""
+"""Generate lambda sensitivity tables for all model x projection combos."""
 
 from pathlib import Path
 
@@ -8,7 +8,8 @@ import pandas as pd
 RESULTS_DIR = Path(__file__).resolve().parent.parent / "output" / "results"
 OUTPUT_DIR = Path(__file__).resolve().parent
 
-print(RESULTS_DIR, OUTPUT_DIR)
+PROJECTIONS = ["umap", "tsne"]
+PROJECTION_LABELS = {"umap": "UMAP", "tsne": "t-SNE"}
 
 DATASETS = ["mnist", "fmnist", "blobs", "har"]
 DATASET_LABELS = {"mnist": "MNIST", "fmnist": "Fashion", "blobs": "Blobs", "har": "HAR"}
@@ -27,63 +28,47 @@ CONFIGS = [
         "name": "MLP-small",
         "prefix": "nn_MLP_h512_n3",
         "lambdas": [0, 1, 10, 20, 40, 80],
-        "label": "tab:lambda-sensitivity",
+        "label": "tab:lambda-sensitivity-mlp-small",
         "caption": (
             "Sensitivity to Jacobian regularization strength $\\lambda$ for MLP-small "
-            "(512 hidden, 3 layers, UMAP, 10 runs). Best per dataset in \\textbf{bold}."
+            "(512 hidden, 3 layers, {proj}, 10 runs). Best per dataset in \\textbf{{bold}}."
         ),
     },
     {
         "name": "MLP-large",
         "prefix": "nn_MLP_h1024_n6",
         "lambdas": [0, 10, 20, 40, 80],
-        "label": "tab:lambda-sensitivity-large",
+        "label": "tab:lambda-sensitivity-mlp-large",
         "caption": (
-            "Sensitivity to $\\lambda$ for MLP-large (1024 hidden, 6 layers, UMAP, 10 runs). "
-            "Best per dataset in \\textbf{bold}."
+            "Sensitivity to $\\lambda$ for MLP-large (1024 hidden, 6 layers, {proj}, 10 runs). "
+            "Best per dataset in \\textbf{{bold}}."
         ),
     },
     {
         "name": "SpecMLP-small",
         "prefix": "nn_SpecMLP_h512_n3",
         "lambdas": [0, 1, 10, 20, 40, 80],
-        "label": "tab:lambda-sensitivity-spec",
+        "label": "tab:lambda-sensitivity-specmlp-small",
         "caption": (
-            "Sensitivity to $\\lambda$ for SpecMLP-small (512 hidden, 3 layers, spectral norm, UMAP, 10 runs). "
-            "Best per dataset in \\textbf{bold}."
+            "Sensitivity to $\\lambda$ for SpecMLP-small "
+            "(512 hidden, 3 layers, spectral norm, {proj}, 10 runs). "
+            "Best per dataset in \\textbf{{bold}}."
         ),
     },
 ]
 
 
-def format_value(mean, std, bold=False):
-    if pd.isna(mean) or pd.isna(std):
-        return "--"
-    mean_str = f"{mean:.3f}".rstrip("0").rstrip(".")
-    std_str = f"{std:.3f}".rstrip("0").rstrip(".")
-    if mean_str.startswith("0."):
-        mean_str = mean_str[1:]
-    if std_str.startswith("0."):
-        std_str = std_str[1:]
-    result = f"${mean_str} \\pm {std_str}$"
-    if bold:
-        return (
-            f"\\mathbf{{{mean_str} \\pm {std_str}}}".replace(result, "") or f"$\\mathbf{{{mean_str} \\pm {std_str}}}$"
-        )
-    return result
-
-
 def csv_filename(prefix, lam):
     if lam == 0:
         return f"{prefix}_nojac.csv"
-    lam_str = f"{lam:.1f}" if isinstance(lam, float) else f"{float(lam):.1f}"
-    return f"{prefix}_jac{lam_str}.csv"
+    return f"{prefix}_jac{float(lam):.1f}.csv"
 
 
-def generate_table(config):
+def generate_table(config, projection):
     lambdas = config["lambdas"]
     prefix = config["prefix"]
     ncols = len(lambdas)
+    proj_label = PROJECTION_LABELS[projection]
 
     # Load data
     data = {}
@@ -94,17 +79,18 @@ def generate_table(config):
             print(f"  WARNING: {fpath} not found, skipping")
             continue
         df = pd.read_csv(fpath)
-        df = df[df["projection"] == "umap"]
+        df = df[df["projection"] == projection]
         df["test_loss"] = pd.to_numeric(df["test_loss"], errors="coerce")
         data[lam] = df
 
     # Build table
-    col_headers = " & ".join([f"$\\lambda{{=}}{lambda_val}$" for lambda_val in lambdas])
+    col_headers = " & ".join([f"$\\lambda{{=}}{v}$" for v in lambdas])
+    label = f"{config['label']}-{projection}"
+    caption = config["caption"].format(proj=proj_label)
+
     lines = []
     lines.append(r"\begin{table*}[ht]")
     lines.append(r"\centering")
-    lines.append(f"\\caption{{{config['caption']}}}")
-    lines.append(f"\\label{{{config['label']}}}")
     lines.append(r"\small")
     lines.append(r"\setlength{\tabcolsep}{3.5pt}")
     lines.append(f"\\begin{{tabular}}{{@{{}}l {'c' * ncols}@{{}}}}")
@@ -118,7 +104,6 @@ def generate_table(config):
         lines.append(f"\\multicolumn{{{ncols + 1}}}{{l}}{{\\textit{{{metric_name}}}}} \\\\")
 
         for ds in DATASETS:
-            # Compute means per lambda
             means = {}
             stds = {}
             for lam in lambdas:
@@ -130,19 +115,13 @@ def generate_table(config):
                 means[lam] = df_ds[metric_col].mean()
                 stds[lam] = df_ds[metric_col].std()
 
-            # Find best
             best_lam = None
             if means:
-                if lower_better:
-                    best_lam = min(means, key=means.get)
-                else:
-                    best_lam = max(means, key=means.get)
+                best_lam = min(means, key=means.get) if lower_better else max(means, key=means.get)
 
-            # Format cells
             cells = []
             for lam in lambdas:
                 if lam in means:
-                    is_best = lam == best_lam
                     m, s = means[lam], stds[lam]
                     mean_str = f"{m:.3f}".rstrip("0").rstrip(".")
                     std_str = f"{s:.3f}".rstrip("0").rstrip(".")
@@ -150,7 +129,7 @@ def generate_table(config):
                         mean_str = mean_str[1:]
                     if std_str.startswith("0."):
                         std_str = std_str[1:]
-                    if is_best:
+                    if lam == best_lam:
                         cells.append(f"$\\mathbf{{{mean_str} \\pm {std_str}}}$")
                     else:
                         cells.append(f"${mean_str} \\pm {std_str}$")
@@ -161,6 +140,8 @@ def generate_table(config):
 
     lines.append(r"\bottomrule")
     lines.append(r"\end{tabular}")
+    lines.append(f"\\caption{{{caption}}}")
+    lines.append(f"\\label{{{label}}}")
     lines.append(r"\end{table*}")
     return "\n".join(lines)
 
@@ -168,10 +149,10 @@ def generate_table(config):
 def main():
     all_tables = []
     for config in CONFIGS:
-        print(f"Generating table for {config['name']}...")
-        table = generate_table(config)
-        all_tables.append(table)
-        print(f"  -> {config['label']}")
+        for proj in PROJECTIONS:
+            print(f"Generating {config['name']} / {proj}...")
+            table = generate_table(config, proj)
+            all_tables.append(table)
 
     output_file = OUTPUT_DIR / "00-lambda-tables.tex"
     output_file.write_text("\n\n".join(all_tables))
