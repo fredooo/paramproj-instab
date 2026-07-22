@@ -6,7 +6,13 @@
 [![arXiv](https://img.shields.io/badge/paper-arXiv-red)](http://arxiv.org/abs/2604.21617)
 [![OSF Project](https://img.shields.io/badge/OSF-View%20Project-lightgrey)](https://osf.io/t7uc3)
 
-📄 **Paper:** [Paper](http://arxiv.org/abs/2604.21617)
+📄 **Paper:** [Paper](https://frederikdennig.com/publications/Dennig2026Instability)
+
+## Overview
+
+![Overview](overview.png)
+
+*UMAP projection of MNIST (a); class centroid-based points serve as anchors in all plots. Gaussian noise (σ = 0.17) is applied to anchor images (2000 samples); ellipses show local PCA directions and noise-induced bias after parametric projection (b–d). Unregularized MLPs (b: 3 layers, 512 units each; c: 6 layers, 1024 units each) yield large ellipses and high bias, with noisy samples drifting from anchors. MLP-small+J (d: 6 layers, 1024 units each, Jacobian regularization) produces small ellipses, low bias, and stable projections.*
 
 ## Key Features
 
