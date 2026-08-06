@@ -5,8 +5,9 @@
 [![Uses: venv](https://img.shields.io/badge/Environment-venv-blue)](https://docs.python.org/3/library/venv.html)
 [![arXiv](https://img.shields.io/badge/paper-arXiv-red)](http://arxiv.org/abs/2604.21617)
 [![OSF Project](https://img.shields.io/badge/OSF-View%20Project-lightgrey)](https://osf.io/t7uc3)
+[![EG](https://img.shields.io/badge/EG-View-yellow)](https://diglib.eg.org/items/0152d011-163b-4594-a770-3756c92689d9)
 
-📄 **Paper:** [Paper](https://frederikdennig.com/publications/Dennig2026Instability)
+📄 **Paper:** [Link](https://frederikdennig.com/publications/Dennig2026Instability)
 
 ## Overview
 
