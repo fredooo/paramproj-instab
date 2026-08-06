@@ -56,12 +56,54 @@ This will:
 - Compute stability and quality metrics
 - Generate visualization outputs
 
-### 3. Smoke Test
+Results are written to `output/results/` as one CSV per model configuration (see
+[Results](#results)). Note that `main.py` overwrites every CSV in that directory.
+
+### 3. Generate Tables
+
+The LaTeX tables in the paper are generated from the committed CSVs in `output/results/`:
+
+```bash
+python3 tables/create_main_table.py         # 00-comparison-table.tex
+python3 tables/aggregate_lambda_sweep.py    # 00-lambda-tables.tex
+python3 tables/aggregate_training_time.py   # 00-training-time-table.tex
+python3 tables/aggregate_tsne_comparison.py # 00-tsne-table.tex
+```
+
+Each writes its `.tex` file into `tables/`. These outputs are gitignored.
+
+### 4. Smoke Test
 
 ```bash
 # Verify installation with a quick test
 python3 test.py
 ```
+
+### 5. Development
+
+```bash
+pip install -r requirements-dev.txt
+
+./lint.sh check   # check linting and formatting (CI mode, no changes)
+./lint.sh fix     # auto-fix with ruff, black, isort
+```
+
+## Results
+
+`output/results/` contains committed **outputs** of `main.py` — the exact data behind the
+paper's tables — and serves as the **input** to the scripts in `tables/`. Regenerating them
+requires a full `main.py` run.
+
+| File Pattern                       | Description                                                                 |
+| ---------------------------------- | --------------------------------------------------------------------------- |
+| `nn_<arch>_h<hidden>_n<layers>_{nojac,jac<λ>}.csv` | One file per entry in `MODELS` (`main.py`), 17 in total. Each holds 80 rows: 10 seeds (777–786) × 4 datasets × 2 projections. |
+| `proj_umap.csv`                    | Non-parametric UMAP [2] baseline, same schema. Only UMAP appears here, as t-SNE [3] provides no `transform` and is therefore not evaluated on unseen noisy points. |
+| `proj_umap_large_sweep.csv`        | UMAP [2] baseline from the follow-up run that added the MLP-large λ sweep. Retained for provenance; not read by any script. |
+
+All files share one schema: `dataset`, `projection`, `run_id`, `run` (seed), `test_loss`,
+`trust_p2`, `cont_p2`, `trust`, `cont`, `fit_time`, `inference_time`, `D_dev`, `D_bias`, `E_NA`.
+The filename — not a column — identifies the model configuration. `test_loss` and `fit_time` are
+`N/A` for the non-parametric baselines.
 
 ## File Overview
 
@@ -75,10 +117,13 @@ python3 test.py
 | `utils.py`          | Utility functions (seeding, centroid selection, plotting).                  |
 | `test.py`           | Smoke test for verifying installation.                                      |
 | `distance_calibration.py` | Calibrates perturbation noise (sigma) across datasets using percentile-based matching to MNIST. |
-| `create_table.py`   | Aggregates CSV results and generates LaTeX comparison table.                 |
+| `noisy_mnist.py`    | Standalone figure: MNIST digits at increasing noise levels ($\sigma \in \{0, 0.17, 0.34\}$). |
+| `lint.sh`           | Code quality checks and formatting (ruff, black, isort).                    |
 | `dataset_loaders/`  | Dataset loading functions for MNIST, FashionMNIST, HAR, Blobs.              |
 | `projection_utils/` | UMAP [2] and t-SNE [3] setup utilities.                                             |
 | `plotting/`         | Visualization modules (scatter, KDE, PCA ellipses, Voronoi, anchor lines).  |
+| `tables/`           | Aggregation scripts turning `output/results/` CSVs into the paper's LaTeX tables. |
+| `output/results/`   | Committed experiment results — outputs of `main.py`, inputs to `tables/`.    |
 
 ## Metrics
 

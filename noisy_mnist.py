@@ -1,5 +1,7 @@
 """Visualize MNIST digits under varying Gaussian noise levels."""
 
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 from torchvision import datasets, transforms
@@ -43,6 +45,7 @@ def main():
                 axs[row, col + 1].set_title(str(col), fontsize=10)
 
     plt.subplots_adjust(top=0.96, bottom=0.02, left=0.02, right=0.98)
+    os.makedirs("./output/images", exist_ok=True)
     plt.savefig("./output/images/noisy_mnist.png", dpi=300, bbox_inches="tight")
     plt.close()
 
