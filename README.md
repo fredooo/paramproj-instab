@@ -143,6 +143,11 @@ Given anchor point $z_0$ and $N$ noisy projections $\{z_i\}_{i=1}^N$:
 - **Trustworthiness** [4]: Penalizes false neighbors (points close in low-dim but distant in high-dim)
 - **Continuity** [4]: Penalizes missing neighbors (points close in high-dim but distant in low-dim)
 
+### Datasets
+
+The HAR (Human Activity Recognition Using Smartphones) dataset is redistributed here under
+CC BY 4.0 from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones) [5].
+
 ## References
 
 [1] Espadoto, M., Hirata, N. S. T., & Telea, A. C. (2020). Deep learning multidimensional projections. *Information Visualization*, 19(3), 247–269.
@@ -152,6 +157,8 @@ Given anchor point $z_0$ and $N$ noisy projections $\{z_i\}_{i=1}^N$:
 [3] van der Maaten, L., & Hinton, G. (2008). Visualizing Data using t-SNE. *Journal of Machine Learning Research*, 9(86), 2579–2605.
 
 [4] Venna, J., & Kaski, S. (2001). Neighborhood Preservation in Nonlinear Projection Methods: An Experimental Study. *30th International Conference on Artificial Neural Networks*, 485–491.
+
+[5] Anguita, D., Ghio, A., Oneto, L., Parra, X., & Reyes-Ortiz, J. L. (2013). A Public Domain Dataset for Human Activity Recognition Using Smartphones. *ESANN 2013*, 437–442.
 
 ## License
 
